@@ -1,0 +1,18 @@
+# Django
+*.pyc
+__pycache__/
+db.sqlite3
+media/
+staticfiles/
+
+# Secrets
+.env
+
+# Docker
+.dockerignore
+
+# VS Code
+.vscode/
+
+# Python
+venv/
