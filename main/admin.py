@@ -90,6 +90,7 @@ class VacancyResource(resources.ModelResource):
         fields = ('id', 'title', 'company_name', 'salary_min', 'salary_max', 'status', 'created_at', 'salary_range')
         export_order = ('id', 'title', 'company_name', 'salary_range', 'status', 'created_at')
 
+    # исп метод dehydrate_{field_name}
     def dehydrate_salary_range(self, vacancy):
         if vacancy.salary_min and vacancy.salary_max:
             return f"{vacancy.salary_min} – {vacancy.salary_max}"
@@ -99,6 +100,16 @@ class VacancyResource(resources.ModelResource):
             return f"до {vacancy.salary_max}"
         return "не указана"
 
+    # использовала метод get_{field_name}
+    def get_recruiter_email(self, vacancy):
+        return vacancy.created_by.email if vacancy.created_by else "Не указан"
+    
+    # использовала метод get_export_queryset
+    def get_export_queryset(self):
+        # экспортирую только опубликованные вакансии!!!
+        return Vacancy.objects.filter(status='published')
+    
+    
 @admin.register(Vacancy)
 class VacancyAdmin(ImportExportModelAdmin):
     resource_class = VacancyResource

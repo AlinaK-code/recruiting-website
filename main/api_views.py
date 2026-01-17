@@ -12,10 +12,14 @@ class VacancyViewSet(viewsets.ModelViewSet):
     queryset = Vacancy.objects.all()
     serializer_class = VacancySerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['company', 'status']          # 1. Фильтр по именованным аргументам
-    search_fields = ['title', 'description']         # 2. SearchFilter
+    # 1) фильтр по именованным аргументам, например http://127.0.0.1:8000/api/vacancies/?company=7
+    filterset_fields = ['company', 'status'] 
+    # 2) SearchFilter, например http://127.0.0.1:8000/api/vacancies/?search=Python         
+    search_fields = ['title', 'description']
+    # 3)  фильтр для ранжирования, пример http://127.0.0.1:8000/api/vacancies/?ordering=salary_min
     ordering_fields = ['created_at', 'salary_min']
 
+    # 4) фильтр по текущему пользователю
     def get_queryset(self):
         user = self.request.user
         if user.is_authenticated:
@@ -29,7 +33,7 @@ class VacancyViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def high_salary(self, request):
-        # Фильтр по GET-параметрам
+        # 5) фильтр по GET, например ток зп >= 150k http://127.0.0.1:8000/api/vacancies/high_salary/?min_salary=150000
         min_salary = request.query_params.get('min_salary', 100000)
         return Response(
             VacancySerializer(

@@ -6,3 +6,4 @@ django-simple-history==3.6.0
 python-decouple==3.8
 Pillow==12.1.0
 ruff==0.8.0
+openpyxl==3.1.5 
