@@ -1,5 +1,8 @@
 from django.contrib import admin
 from django.utils.html import format_html # помогает безопасно вставлять html
+from import_export import resources
+from import_export.admin import ImportExportModelAdmin
+from import_export.fields import Field
 
 # импортирую все модели
 from .models import (
@@ -77,9 +80,28 @@ class ApplicationInline(admin.TabularInline):
     readonly_fields = ['applied_at']
     raw_id_fields = ['candidate']
 
+# для экспорта в эксель 
+class VacancyResource(resources.ModelResource):
+    company_name = Field(attribute='company__name', column_name='Компания')
+    salary_range = Field(column_name='Зарплата')
+
+    class Meta:
+        model = Vacancy
+        fields = ('id', 'title', 'company_name', 'salary_min', 'salary_max', 'status', 'created_at', 'salary_range')
+        export_order = ('id', 'title', 'company_name', 'salary_range', 'status', 'created_at')
+
+    def dehydrate_salary_range(self, vacancy):
+        if vacancy.salary_min and vacancy.salary_max:
+            return f"{vacancy.salary_min} – {vacancy.salary_max}"
+        elif vacancy.salary_min:
+            return f"от {vacancy.salary_min}"
+        elif vacancy.salary_max:
+            return f"до {vacancy.salary_max}"
+        return "не указана"
 
 @admin.register(Vacancy)
-class VacancyAdmin(admin.ModelAdmin):
+class VacancyAdmin(ImportExportModelAdmin):
+    resource_class = VacancyResource
     list_display = ['title', 'company_name', 'salary_range', 'status', 'created_by_email', 'created_at']
     list_filter = ['status', 'company', 'created_at']
     search_fields = ['title', 'description']

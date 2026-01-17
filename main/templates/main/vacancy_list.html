@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Вакансии</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        .vacancy {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .salary {
+            color: green;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Все вакансии</h1>
+
+    {% for vacancy in vacancies %}
+    <div class="vacancy">
+        <h2>{{ vacancy.title }}</h2>
+        <p><strong>Компания:</strong> {{ vacancy.company.name }}</p>
+        <p class="salary">
+            <!-- если поля зп не пустые -->
+            {% if vacancy.salary_min and vacancy.salary_max %}
+            Зарплата: от {{ vacancy.salary_min }} до {{ vacancy.salary_max }}
+            <!-- если указан только мин -->
+            {% elif vacancy.salary_min %}
+            Зарплата: от {{ vacancy.salary_min }}
+            <!-- если указан тольок макс -->
+            {% elif vacancy.salary_max %}
+            Зарплата: до {{ vacancy.salary_max }}
+            {% else %}
+            Зарплата не указана
+            {% endif %}
+        </p>
+        <p>{{ vacancy.description|truncatewords:20 }}</p>
+        <p>
+            <a href="{% url 'main:vacancy_edit' vacancy.pk %}">Редактировать</a> |
+            <a href="{% url 'main:vacancy_delete' vacancy.pk %}">Удалить</a>
+        </p>
+    </div>
+    {% empty %}
+    <p>Нет опубликованных вакансий.</p>
+    {% endfor %}
+
+    <!-- Пагинация (есть в main.views) -->
+    {% if is_paginated %}
+    <div>
+        {% if page_obj.has_previous %}
+        <a href="?page=1">&laquo; первая</a>
+        <a href="?page={{ page_obj.previous_page_number }}">предыдущая</a>
+        {% endif %}
+
+        Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
+
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}">следующая</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}">последняя &raquo;</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</body>
+
+</html>

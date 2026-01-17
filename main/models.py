@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from simple_history.models import HistoricalRecords
 
 # навыки
 class Skill(models.Model):
@@ -140,6 +141,9 @@ class Vacancy(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Создана")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Обновлена")
+    
+    # история изменений, автоматически создаст таблицу main_historicalvacancy где будут хоаниться изменения
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = "Вакансия"
