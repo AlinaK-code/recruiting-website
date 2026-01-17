@@ -41,7 +41,7 @@ class Command(BaseCommand):
             ('Analytics Pro', 'Владивосток'),
         ]
         companies = []
-        for name, city in companies:
+        for name, city in companies_data:
             company, _ = Company.objects.get_or_create(
                 name=name,
                 defaults={'city': city, 'description': f'Компания {name}'}

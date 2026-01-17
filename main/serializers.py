@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import (
-    Skill, Company, Vacancy
+    Skill, Company, Vacancy, Application
 )
 
 class SkillSerializer(serializers.ModelSerializer):
@@ -25,7 +25,7 @@ class VacancySerializer(serializers.ModelSerializer):
         }
 
     def validate(self, data):
-        """Кастомная валидация: зарплата от не может быть больше зарплаты до"""
+        # написала кастомную валидацию для поля зп
         salary_min = data.get('salary_min')
         salary_max = data.get('salary_max')
         if salary_min and salary_max and salary_min > salary_max:
@@ -33,3 +33,11 @@ class VacancySerializer(serializers.ModelSerializer):
                 "Зарплата 'от' не может быть больше зарплаты 'до'"
             )
         return data
+    
+class ApplicationSerializer(serializers.ModelSerializer):
+    candidate_email = serializers.CharField(source='candidate.email', read_only=True)
+    vacancy_title = serializers.CharField(source='vacancy.title', read_only=True)
+
+    class Meta:
+        model = Application
+        fields = '__all__'
