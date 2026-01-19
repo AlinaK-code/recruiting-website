@@ -121,7 +121,7 @@ class Vacancy(models.Model):
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
-        default='draft',
+        default='published',
         verbose_name="Статус"
     )
     company = models.ForeignKey(
@@ -157,7 +157,7 @@ class Vacancy(models.Model):
 # заявка на работу 
 class Application(models.Model):
     STATUS_CHOICES = [
-        ('submitted', 'Подана'),
+        ('submitted', 'На рассмотрении'),
         ('reviewed', 'Рассмотрена'),
         ('interview_scheduled', 'Собеседование назначено'),
         ('accepted', 'Принята'),

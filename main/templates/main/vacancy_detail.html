@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ vacancy.title }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container py-4">
+        <h1>{{ vacancy.title }}</h1>
+        <p><strong>Компания:</strong> {{ vacancy.company.name }}</p>
+        <p><strong>Город:</strong> {{ vacancy.company.city }}</p>
+        
+        {% if vacancy.salary_min or vacancy.salary_max %}
+        <p><strong>Зарплата:</strong> 
+            {% if vacancy.salary_min and vacancy.salary_max %}
+                от {{ vacancy.salary_min }} до {{ vacancy.salary_max }}
+            {% elif vacancy.salary_min %}
+                от {{ vacancy.salary_min }}
+            {% elif vacancy.salary_max %}
+                до {{ vacancy.salary_max }}
+            {% endif %}
+        </p>
+        {% endif %}
+
+        <h3>Описание</h3>
+        <p>{{ vacancy.description }}</p>
+
+        <!-- Навыки -->
+        {% if vacancy.skills.all %}
+        <h4>Требуемые навыки</h4>
+        <ul>
+            {% for skill in vacancy.skills.all %}
+            <li>{{ skill.name }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        <!-- Статус откликов и собеседований (для демонстрации) -->
+        {% if applications %}
+        <h4 class="mt-4">Статус откликов</h4>
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th>Кандидат</th>
+                    <th>Статус</th>
+                    <th>Собеседование</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for app in applications %}
+                <tr>
+                    <td>{{ app.candidate.email }}</td>
+                    <td>
+                        {% if app.status == 'submitted' %}На рассмотрении
+                        {% elif app.status == 'reviewed' %}Рассмотрен
+                        {% elif app.status == 'interview_scheduled' %}<span class="text-warning">Собеседование назначено</span>
+                        {% elif app.status == 'accepted' %}<span class="text-success">Принят</span>
+                        {% elif app.status == 'rejected' %}<span class="text-danger">Отклонён</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if app.interview %}
+                            {{ app.interview.scheduled_at|date:"d.m.Y H:i" }}
+                            ({{ app.interview.get_format_display }})
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+
+        <a href="{% url 'main:vacancy_list' %}" class="btn btn-outline-secondary mt-3">← К списку вакансий</a>
+        <a href="{% url 'main:vacancy_list' %}" class="btn btn-outline-primary mt-3">Откликнуться</a>
+    </div>
+</body>
+</html>
