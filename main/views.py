@@ -33,12 +33,14 @@ class VacancyDetailView(DetailView):
         context['applications'] = applications
         context['interviews'] = interviews
         return context
+    
 
 class VacancyCreateView(LoginRequiredMixin, CreateView):
     model = Vacancy
     fields = ['title', 'description', 'salary_min', 'salary_max', 'company', 'skills']
     template_name = 'main/vacancy_form.html'
-    success_url = reverse_lazy('main:vacancy_list')
+    success_url = reverse_lazy('main:vacancy_list ')
+    
 
     def form_valid(self, form):
         form.instance.created_by = self.request.user

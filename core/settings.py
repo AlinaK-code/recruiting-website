@@ -98,6 +98,11 @@ else:
         }
     }
 
+if IS_DOCKER:
+    ADMIN_BASE_CLASS = 'import_export.admin.ImportExportModelAdmin'
+else:
+    ADMIN_BASE_CLASS = 'django.contrib.admin.ModelAdmin'
+    
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 
