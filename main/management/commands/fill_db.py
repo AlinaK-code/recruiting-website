@@ -9,7 +9,6 @@ from main.models import (
 )
 
 class Command(BaseCommand):
-    help = 'Заполняет БД тестовыми данными: компании, рекрутеры, кандидаты, вакансии, отклики, собеседования, фидбэк'
 
     def handle(self, *args, **options):
         #1. Суперпользователь 
