@@ -6,3 +6,4 @@ urlpatterns = [
     path('', include('main.urls')), # для обычных страниц
     path('', include('main.api_urls')), #для API
 ]
+
