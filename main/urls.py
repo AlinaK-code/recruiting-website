@@ -1,7 +1,14 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 from . import views
+from .api_views import VacancyViewSet, ApplicationViewSet
 
 app_name = 'main'
+
+# роутер для автоматической генерации юрл в апи
+router = DefaultRouter()
+router.register(r'vacancies', VacancyViewSet, basename='vacancy-api')
+router.register(r'applications', ApplicationViewSet, basename='application-api')
 
 urlpatterns = [
  path('', views.HomeView.as_view(), name='home'),
@@ -15,4 +22,7 @@ urlpatterns = [
     
     # Компании
     path('companies/', views.CompanyListView.as_view(), name='company_list'),
+    
+    # эндпоинты для апи, что-то типа  /api/vacancies/, /api/vacancies/high_salary/, /api/applications/
+    path('api/', include(router.urls)),
 ]

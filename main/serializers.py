@@ -17,6 +17,12 @@ class VacancySerializer(serializers.ModelSerializer):
     company_name = serializers.CharField(source='company.name', read_only=True)
     skills_list = SkillSerializer(source='skills', many=True, read_only=True)
 
+    # тут использую SerializerMethodField (см ниже)
+    applications_count = serializers.SerializerMethodField()
+    
+    # передача данных через контекст (см ниже)
+    is_owner = serializers.SerializerMethodField()
+
     class Meta:
         model = Vacancy
         fields = '__all__'
@@ -33,6 +39,22 @@ class VacancySerializer(serializers.ModelSerializer):
                 "Зарплата 'от' не может быть больше зарплаты 'до'"
             )
         return data
+    
+    
+    # реализация SerializerMethodField
+    def get_applications_count(self, obj):
+        # если queryset был аннотирован во view, берем значение оттуда 
+        if hasattr(obj, 'applications_count'):
+            return obj.applications_count
+        # фоллбэк, если аннотации нет
+        return obj.applications.count()
+
+    # реализация передачи данных через контекст
+    def get_is_owner(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return obj.created_by == request.user
+        return False
     
 class ApplicationSerializer(serializers.ModelSerializer):
     candidate_email = serializers.CharField(source='candidate.email', read_only=True)

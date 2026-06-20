@@ -3,7 +3,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
-from django.db.models import Q
+from .permissions import IsOwnerOrAdmin 
+from django.db.models import Count, Avg, Q 
 from .models import Vacancy, Application
 from .serializers import VacancySerializer, ApplicationSerializer
 
@@ -18,29 +19,36 @@ class VacancyViewSet(viewsets.ModelViewSet):
     search_fields = ['title', 'description']
     # 3)  фильтр для ранжирования, пример http://127.0.0.1:8000/api/vacancies/?ordering=salary_min
     ordering_fields = ['created_at', 'salary_min']
+    # подключаю права доступа 
+    permission_classes = [IsOwnerOrAdmin] 
 
     # 4) фильтр по текущему пользователю
     def get_queryset(self):
         user = self.request.user
+        # оптимизированыый qs
+        qs = Vacancy.objects.select_related('company', 'created_by').prefetch_related('skills')
+
+        # аннотации для вычисления доп. данных
+        qs = qs.annotate(
+            applications_count=Count('applications'),
+            avg_feedback_rating=Avg('applications__interview__feedback__rating')
+        )
+
         if user.is_authenticated:
             # авторизованный пользователь видит все опубликованные вакансии и свои черновики
-            return Vacancy.objects.filter(
-                Q(status='published') | Q(created_by=user)
-            )
-        else:
-            # Гость видит только опубликованные
-            return Vacancy.objects.filter(status='published')
+            return qs.filter(Q(status='published') | Q(created_by=user))
+         # Гость видит только опубликованные
+        return qs.filter(status='published') 
+
 
     @action(detail=False, methods=['get'])
     def high_salary(self, request):
         # 5) фильтр по GET, например ток зп >= 150k http://127.0.0.1:8000/api/vacancies/high_salary/?min_salary=150000
         min_salary = request.query_params.get('min_salary', 100000)
-        return Response(
-            VacancySerializer(
-                Vacancy.objects.filter(salary_min__gte=min_salary),
-                many=True
-            ).data
-        )
+        # используею self.filter_queryset, чтобы применить оптимизацию и аннотации
+        base_qs = self.get_queryset().filter(salary_min__gte=min_salary)
+        serializer = self.get_serializer(base_qs, many=True)
+        return Response(serializer.data)
 
     # 2 кастомных Q-запросов  
     @action(detail=False, methods=['get'])
