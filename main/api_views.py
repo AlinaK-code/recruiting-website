@@ -40,6 +40,10 @@ class VacancyViewSet(viewsets.ModelViewSet):
          # Гость видит только опубликованные
         return qs.filter(status='published') 
 
+    def perform_create(self, serializer):
+        # автоматом назначает текущего пользователя автором вакансии
+        # при создании через апишку
+        serializer.save(created_by=self.request.user)
 
     @action(detail=False, methods=['get'])
     def high_salary(self, request):

@@ -1,0 +1,70 @@
+$kind: http-example
+request:
+  url: "{{base_url}}/api/vacancies/24/"
+  method: PUT
+  headers:
+    Cookie: sessionid=ait60d8xnz93nhw8b31nv3lhbncxarf7; csrftoken=hw7hjlPv3w3vo6cWkxJYEz4spiadE4pz
+    X-CSRFToken: hw7hjlPv3w3vo6cWkxJYEz4spiadE4pz
+  body:
+    type: json
+    content: "{\r
+
+      \    \"title\": \"Смогла поменять чужое описание, так как я админ :)\",\r
+
+      \    \"description\": \"лялялялял\",\r
+
+      \    \"salary_min\": 60000,\r
+
+      \    \"salary_max\": 90000,\r
+
+      \    \"company\": 1,\r
+
+      \    \"contact_email\": \"junior@test.com\",\r
+
+      \    \"contact_phone\": \"+79990000001\"\r
+
+      }"
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    date: Sat, 20 Jun 2026 22:42:01 GMT
+    server: WSGIServer/0.2 CPython/3.12.13
+    content-type: application/json
+    vary: Accept, Cookie
+    allow: GET, PUT, PATCH, DELETE, HEAD, OPTIONS
+    x-frame-options: DENY
+    content-length: "512"
+    x-content-type-options: nosniff
+    referrer-policy: same-origin
+    cross-origin-opener-policy: same-origin
+  body:
+    type: json
+    content: |-
+      {
+        "id": 24,
+        "company_name": "IT-Company",
+        "skills_list": [
+          {
+            "id": 11,
+            "name": "SQL"
+          }
+        ],
+        "applications_count": 0,
+        "is_owner": false,
+        "title": "Смогла поменять чужое описание, так как я админ :)",
+        "description": "лялялялял",
+        "salary_min": 60000,
+        "salary_max": 90000,
+        "status": "published",
+        "contact_email": "junior@test.com",
+        "contact_phone": "+79990000001",
+        "created_at": "2026-06-18T23:22:02.049075+03:00",
+        "updated_at": "2026-06-21T01:42:01.206102+03:00",
+        "company": 1,
+        "created_by": 4,
+        "skills": [
+          11
+        ]
+      }
+order: 1781995323883

@@ -1,0 +1,21 @@
+$kind: http-request
+url: "{{base_url}}/api/vacancies/28/"
+method: PUT
+headers:
+  Cookie: sessionid=3as19iejk9yl19t4eeqefr6o4xmch0y7; csrftoken=crogtwyHWtD9ADBY5f7NN6KzlVPYB93V
+  X-CSRFToken: crogtwyHWtD9ADBY5f7NN6KzlVPYB93V
+queryParams:
+  - key: ""
+    value: ""
+    disabled: true
+  - key: ""
+    value: ""
+    disabled: true
+  - key: ""
+    value: ""
+    disabled: true
+body:
+  type: json
+  content: "{\r\n    \"salary_min\": 70000\r\n}"
+examples: .resources/PUT Update Own Vacancy.resources/examples
+order: 1856565030133030

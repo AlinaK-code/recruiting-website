@@ -1,0 +1,63 @@
+$kind: http-example
+request:
+  url: "{{base_url}}/api/vacancies/"
+  method: POST
+  headers:
+    Cookie: sessionid=3as19iejk9yl19t4eeqefr6o4xmch0y7; csrftoken=crogtwyHWtD9ADBY5f7NN6KzlVPYB93V
+    X-CSRFToken: crogtwyHWtD9ADBY5f7NN6KzlVPYB93V
+  body:
+    type: json
+    content: "{\r
+
+      \    \"title\": \"Начинающий Python разработчик\",\r
+
+      \    \"description\": \"Главное знать базу, остальному научим!\",\r
+
+      \    \"salary_min\": 60000,\r
+
+      \    \"salary_max\": 90000,\r
+
+      \    \"company\": 1,\r
+
+      \    \"contact_email\": \"junior@test.com\",\r
+
+      \    \"contact_phone\": \"+79990000001\"\r
+
+      }"
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    date: Sat, 20 Jun 2026 21:57:41 GMT
+    server: WSGIServer/0.2 CPython/3.12.13
+    content-type: application/json
+    vary: Accept, Cookie
+    allow: GET, POST, HEAD, OPTIONS
+    x-frame-options: DENY
+    content-length: "501"
+    x-content-type-options: nosniff
+    referrer-policy: same-origin
+    cross-origin-opener-policy: same-origin
+  body:
+    type: json
+    content: |-
+      {
+        "id": 28,
+        "company_name": "IT-Company",
+        "skills_list": [],
+        "applications_count": 0,
+        "is_owner": true,
+        "title": "Начинающий Python разработчик",
+        "description": "Главное знать базу, остальному научим!",
+        "salary_min": 60000,
+        "salary_max": 90000,
+        "status": "published",
+        "contact_email": "junior@test.com",
+        "contact_phone": "+79990000001",
+        "created_at": "2026-06-21T00:57:41.125151+03:00",
+        "updated_at": "2026-06-21T00:57:41.125166+03:00",
+        "company": 1,
+        "created_by": 21,
+        "skills": []
+      }
+order: 1781992773794

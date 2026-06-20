@@ -1,0 +1,5 @@
+$kind: http-request
+url: ""
+method: GET
+examples: .resources/POST Create Vacancy.resources/examples
+order: 1781990492851

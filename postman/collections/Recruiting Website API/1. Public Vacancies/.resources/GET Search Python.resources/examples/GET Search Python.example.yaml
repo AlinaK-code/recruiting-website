@@ -1,0 +1,115 @@
+$kind: http-example
+request:
+  url: "{{base_url}}/api/vacancies/?search=Python"
+  method: GET
+  queryParams:
+    - key: search
+      value: Python
+      description: Все вакансии, в которых требуется знание Python
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    date: Sat, 20 Jun 2026 21:00:40 GMT
+    server: WSGIServer/0.2 CPython/3.12.13
+    content-type: application/json
+    vary: Accept, Cookie
+    allow: GET, POST, HEAD, OPTIONS
+    x-frame-options: DENY
+    content-length: "1151"
+    x-content-type-options: nosniff
+    referrer-policy: same-origin
+    cross-origin-opener-policy: same-origin
+  body:
+    type: json
+    content: |-
+      {
+        "count": 2,
+        "next": null,
+        "previous": null,
+        "results": [
+          {
+            "id": 1,
+            "company_name": "IT-Company",
+            "skills_list": [
+              {
+                "id": 2,
+                "name": "Django"
+              },
+              {
+                "id": 8,
+                "name": "Docker"
+              },
+              {
+                "id": 6,
+                "name": "PostgreSQL"
+              },
+              {
+                "id": 1,
+                "name": "Python"
+              }
+            ],
+            "applications_count": 5,
+            "is_owner": false,
+            "title": "Senior Python Developer",
+            "description": "5+ лет опыта, микросервисы, async",
+            "salary_min": 180000,
+            "salary_max": 300000,
+            "status": "published",
+            "contact_email": "hr0@example.com",
+            "contact_phone": "+79990000000",
+            "created_at": "2026-06-18T23:22:01.919883+03:00",
+            "updated_at": "2026-06-18T23:22:01.919891+03:00",
+            "company": 1,
+            "created_by": 2,
+            "skills": [
+              2,
+              8,
+              6,
+              1
+            ]
+          },
+          {
+            "id": 5,
+            "company_name": "SoftLab",
+            "skills_list": [
+              {
+                "id": 14,
+                "name": "Agile"
+              },
+              {
+                "id": 15,
+                "name": "English"
+              },
+              {
+                "id": 1,
+                "name": "Python"
+              },
+              {
+                "id": 11,
+                "name": "SQL"
+              }
+            ],
+            "applications_count": 1,
+            "is_owner": false,
+            "title": "Data Scientist",
+            "description": "Python, pandas, scikit-learn",
+            "salary_min": 150000,
+            "salary_max": 270000,
+            "status": "published",
+            "contact_email": "hr4@example.com",
+            "contact_phone": "+79990000004",
+            "created_at": "2026-06-18T23:22:01.945743+03:00",
+            "updated_at": "2026-06-18T23:22:01.945754+03:00",
+            "company": 4,
+            "created_by": 6,
+            "skills": [
+              14,
+              15,
+              1,
+              11
+            ]
+          }
+        ]
+      }
+order: 1781989285177

@@ -1,0 +1,305 @@
+$kind: http-example
+request:
+  url: "{{base_url}}/api/vacancies/high_salary/?min_salary=150000"
+  method: GET
+  queryParams:
+    - key: min_salary
+      value: "150000"
+      description: Показывает всевакансии с ЗП больше 150к
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    date: Sat, 20 Jun 2026 21:08:58 GMT
+    server: WSGIServer/0.2 CPython/3.12.13
+    content-type: application/json
+    vary: Accept, Cookie
+    allow: GET, HEAD, OPTIONS
+    x-frame-options: DENY
+    content-length: "4461"
+    x-content-type-options: nosniff
+    referrer-policy: same-origin
+    cross-origin-opener-policy: same-origin
+  body:
+    type: json
+    content: |-
+      [
+        {
+          "id": 1,
+          "company_name": "IT-Company",
+          "skills_list": [
+            {
+              "id": 2,
+              "name": "Django"
+            },
+            {
+              "id": 8,
+              "name": "Docker"
+            },
+            {
+              "id": 6,
+              "name": "PostgreSQL"
+            },
+            {
+              "id": 1,
+              "name": "Python"
+            }
+          ],
+          "applications_count": 5,
+          "is_owner": false,
+          "title": "Senior Python Developer",
+          "description": "5+ лет опыта, микросервисы, async",
+          "salary_min": 180000,
+          "salary_max": 300000,
+          "status": "published",
+          "contact_email": "hr0@example.com",
+          "contact_phone": "+79990000000",
+          "created_at": "2026-06-18T23:22:01.919883+03:00",
+          "updated_at": "2026-06-18T23:22:01.919891+03:00",
+          "company": 1,
+          "created_by": 2,
+          "skills": [
+            2,
+            8,
+            6,
+            1
+          ]
+        },
+        {
+          "id": 4,
+          "company_name": "DataTech",
+          "skills_list": [
+            {
+              "id": 18,
+              "name": "AWS"
+            },
+            {
+              "id": 8,
+              "name": "Docker"
+            },
+            {
+              "id": 19,
+              "name": "Kubernetes"
+            },
+            {
+              "id": 13,
+              "name": "Linux"
+            }
+          ],
+          "applications_count": 2,
+          "is_owner": false,
+          "title": "DevOps Engineer",
+          "description": "Docker, Kubernetes, CI/CD",
+          "salary_min": 160000,
+          "salary_max": 280000,
+          "status": "published",
+          "contact_email": "hr3@example.com",
+          "contact_phone": "+79990000003",
+          "created_at": "2026-06-18T23:22:01.940112+03:00",
+          "updated_at": "2026-06-18T23:22:01.940120+03:00",
+          "company": 3,
+          "created_by": 5,
+          "skills": [
+            18,
+            8,
+            19,
+            13
+          ]
+        },
+        {
+          "id": 5,
+          "company_name": "SoftLab",
+          "skills_list": [
+            {
+              "id": 14,
+              "name": "Agile"
+            },
+            {
+              "id": 15,
+              "name": "English"
+            },
+            {
+              "id": 1,
+              "name": "Python"
+            },
+            {
+              "id": 11,
+              "name": "SQL"
+            }
+          ],
+          "applications_count": 1,
+          "is_owner": false,
+          "title": "Data Scientist",
+          "description": "Python, pandas, scikit-learn",
+          "salary_min": 150000,
+          "salary_max": 270000,
+          "status": "published",
+          "contact_email": "hr4@example.com",
+          "contact_phone": "+79990000004",
+          "created_at": "2026-06-18T23:22:01.945743+03:00",
+          "updated_at": "2026-06-18T23:22:01.945754+03:00",
+          "company": 4,
+          "created_by": 6,
+          "skills": [
+            14,
+            15,
+            1,
+            11
+          ]
+        },
+        {
+          "id": 11,
+          "company_name": "WebDev Solutions",
+          "skills_list": [
+            {
+              "id": 3,
+              "name": "JavaScript"
+            },
+            {
+              "id": 4,
+              "name": "React"
+            }
+          ],
+          "applications_count": 1,
+          "is_owner": false,
+          "title": "Frontend Team Lead",
+          "description": "Управление командой, архитектура",
+          "salary_min": 200000,
+          "salary_max": 350000,
+          "status": "published",
+          "contact_email": "hr10@example.com",
+          "contact_phone": "+79990000010",
+          "created_at": "2026-06-18T23:22:01.983321+03:00",
+          "updated_at": "2026-06-18T23:22:01.983331+03:00",
+          "company": 2,
+          "created_by": 5,
+          "skills": [
+            3,
+            4
+          ]
+        },
+        {
+          "id": 12,
+          "company_name": "CodeMasters",
+          "skills_list": [
+            {
+              "id": 1,
+              "name": "Python"
+            }
+          ],
+          "applications_count": 1,
+          "is_owner": false,
+          "title": "ML Engineer",
+          "description": "TensorFlow, PyTorch, NLP",
+          "salary_min": 180000,
+          "salary_max": 320000,
+          "status": "published",
+          "contact_email": "hr11@example.com",
+          "contact_phone": "+79990000011",
+          "created_at": "2026-06-18T23:22:01.988847+03:00",
+          "updated_at": "2026-06-18T23:22:01.988855+03:00",
+          "company": 5,
+          "created_by": 6,
+          "skills": [
+            1
+          ]
+        },
+        {
+          "id": 13,
+          "company_name": "CodeMasters",
+          "skills_list": [
+            {
+              "id": 18,
+              "name": "AWS"
+            }
+          ],
+          "applications_count": 1,
+          "is_owner": false,
+          "title": "Cloud Architect (AWS)",
+          "description": "Архитектура решений, AWS",
+          "salary_min": 220000,
+          "salary_max": 400000,
+          "status": "published",
+          "contact_email": "hr12@example.com",
+          "contact_phone": "+79990000012",
+          "created_at": "2026-06-18T23:22:01.994746+03:00",
+          "updated_at": "2026-06-18T23:22:01.994756+03:00",
+          "company": 5,
+          "created_by": 7,
+          "skills": [
+            18
+          ]
+        },
+        {
+          "id": 14,
+          "company_name": "DataTech",
+          "skills_list": [
+            {
+              "id": 13,
+              "name": "Linux"
+            }
+          ],
+          "applications_count": 1,
+          "is_owner": false,
+          "title": "Security Specialist",
+          "description": "Пентест, анализ уязвимостей",
+          "salary_min": 150000,
+          "salary_max": 280000,
+          "status": "published",
+          "contact_email": "hr13@example.com",
+          "contact_phone": "+79990000013",
+          "created_at": "2026-06-18T23:22:02.000093+03:00",
+          "updated_at": "2026-06-18T23:22:02.000102+03:00",
+          "company": 3,
+          "created_by": 8,
+          "skills": [
+            13
+          ]
+        },
+        {
+          "id": 22,
+          "company_name": "DataTech",
+          "skills_list": [
+            {
+              "id": 13,
+              "name": "Linux"
+            }
+          ],
+          "applications_count": 0,
+          "is_owner": false,
+          "title": "SRE Engineer",
+          "description": "Мониторинг, отказоустойчивость",
+          "salary_min": 170000,
+          "salary_max": 300000,
+          "status": "published",
+          "contact_email": "hr21@example.com",
+          "contact_phone": "+79990000021",
+          "created_at": "2026-06-18T23:22:02.038769+03:00",
+          "updated_at": "2026-06-18T23:22:02.038778+03:00",
+          "company": 3,
+          "created_by": 2,
+          "skills": [
+            13
+          ]
+        },
+        {
+          "id": 23,
+          "company_name": "Analytics Pro",
+          "skills_list": [],
+          "applications_count": 0,
+          "is_owner": false,
+          "title": "Big Data Engineer",
+          "description": "Spark, Hadoop, Kafka",
+          "salary_min": 170000,
+          "salary_max": 290000,
+          "status": "published",
+          "contact_email": "hr22@example.com",
+          "contact_phone": "+79990000022",
+          "created_at": "2026-06-18T23:22:02.044890+03:00",
+          "updated_at": "2026-06-18T23:22:02.044902+03:00",
+          "company": 7,
+          "created_by": 3,
+          "skills": []
+        }
+      ]
+order: 1781989747766

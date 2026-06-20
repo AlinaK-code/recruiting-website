@@ -1,0 +1,5 @@
+$kind: http-request
+url: ""
+method: GET
+examples: .resources/POST Duplicate Vacancy (Fail).resources/examples
+order: 1781993500386

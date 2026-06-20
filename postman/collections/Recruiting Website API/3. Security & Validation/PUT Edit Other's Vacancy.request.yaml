@@ -1,0 +1,27 @@
+$kind: http-request
+url: "{{base_url}}/api/vacancies/24/"
+method: PUT
+headers:
+  Cookie: sessionid=ait60d8xnz93nhw8b31nv3lhbncxarf7; csrftoken=hw7hjlPv3w3vo6cWkxJYEz4spiadE4pz
+  X-CSRFToken: hw7hjlPv3w3vo6cWkxJYEz4spiadE4pz
+body:
+  type: json
+  content: "{\r
+
+    \    \"title\": \"Смогла поменять чужое описание, так как я админ :)\",\r
+
+    \    \"description\": \"лялялялял\",\r
+
+    \    \"salary_min\": 60000,\r
+
+    \    \"salary_max\": 90000,\r
+
+    \    \"company\": 1,\r
+
+    \    \"contact_email\": \"junior@test.com\",\r
+
+    \    \"contact_phone\": \"+79990000001\"\r
+
+    }"
+examples: .resources/PUT Edit Other's Vacancy.resources/examples
+order: 534622035973505

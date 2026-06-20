@@ -1,0 +1,69 @@
+$kind: http-example
+request:
+  url: "{{base_url}}/api/vacancies/"
+  method: POST
+  headers:
+    Cookie: sessionid=3as19iejk9yl19t4eeqefr6o4xmch0y7; csrftoken=crogtwyHWtD9ADBY5f7NN6KzlVPYB93V
+    X-CSRFToken: crogtwyHWtD9ADBY5f7NN6KzlVPYB93V
+  body:
+    type: json
+    content: "{\r
+
+      \    \"id\": 28,\r
+
+      \    \"company_name\": \"IT-Company\",\r
+
+      \    \"skills_list\": [],\r
+
+      \    \"applications_count\": 0,\r
+
+      \    \"is_owner\": true,\r
+
+      \    \"title\": \"Начинающий Python разработчик\",\r
+
+      \    \"description\": \"Главное знать базу, остальному научим!\",\r
+
+      \    \"salary_min\": 70000,\r
+
+      \    \"salary_max\": 90000,\r
+
+      \    \"status\": \"published\",\r
+
+      \    \"contact_email\": \"junior@test.com\",\r
+
+      \    \"contact_phone\": \"+79990000001\",\r
+
+      \    \"created_at\": \"2026-06-21T00:57:41.125151+03:00\",\r
+
+      \    \"updated_at\": \"2026-06-21T01:10:56.827297+03:00\",\r
+
+      \    \"company\": 1,\r
+
+      \    \"created_by\": 21,\r
+
+      \    \"skills\": []\r
+
+      }"
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    date: Sat, 20 Jun 2026 22:15:35 GMT
+    server: WSGIServer/0.2 CPython/3.12.13
+    content-type: application/json
+    vary: Accept, Cookie
+    allow: GET, POST, HEAD, OPTIONS
+    x-frame-options: DENY
+    content-length: "158"
+    x-content-type-options: nosniff
+    referrer-policy: same-origin
+    cross-origin-opener-policy: same-origin
+  body:
+    type: json
+    content: |-
+      {
+        "non_field_errors": [
+          "Поля title, description, company должны производить массив с уникальными значениями."
+        ]
+      }
+order: 1781993748538

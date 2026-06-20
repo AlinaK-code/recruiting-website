@@ -1,0 +1,5 @@
+$kind: http-request
+url: ""
+method: GET
+examples: .resources/GET Search Python.resources/examples
+order: 768849826429128

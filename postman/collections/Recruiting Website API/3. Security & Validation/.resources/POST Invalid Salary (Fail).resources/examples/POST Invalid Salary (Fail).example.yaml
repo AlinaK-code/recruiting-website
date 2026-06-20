@@ -1,0 +1,49 @@
+$kind: http-example
+request:
+  url: "{{base_url}}/api/vacancies/"
+  method: POST
+  headers:
+    Cookie: sessionid=9123bff4hjlgr2sdm4huubtde753alwu; csrftoken=9RxnMo6hsIRdaKsqKUsIHSd2haiewfGN
+    X-CSRFToken: 9RxnMo6hsIRdaKsqKUsIHSd2haiewfGN
+  body:
+    type: json
+    content: "{\r
+
+      \    \"title\": \"Начинающий Java разработчик\",\r
+
+      \    \"description\": \"Главное знать базу, остальному научим!\",\r
+
+      \    \"salary_min\": 500000,\r
+
+      \    \"salary_max\": 90000,\r
+
+      \    \"company\": 3,\r
+
+      \    \"contact_email\": \"junior@test.com\",\r
+
+      \    \"contact_phone\": \"+79990000001\"\r
+
+      }"
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    date: Sat, 20 Jun 2026 23:08:42 GMT
+    server: WSGIServer/0.2 CPython/3.12.13
+    content-type: application/json
+    vary: Accept, Cookie
+    allow: GET, POST, HEAD, OPTIONS
+    x-frame-options: DENY
+    content-length: "110"
+    x-content-type-options: nosniff
+    referrer-policy: same-origin
+    cross-origin-opener-policy: same-origin
+  body:
+    type: json
+    content: |-
+      {
+        "non_field_errors": [
+          "Зарплата 'от' не может быть больше зарплаты 'до'"
+        ]
+      }
+order: 1781996938959

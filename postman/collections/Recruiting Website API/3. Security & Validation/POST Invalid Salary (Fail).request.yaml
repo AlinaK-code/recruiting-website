@@ -1,0 +1,24 @@
+$kind: http-request
+url: "{{base_url}}/api/vacancies/"
+method: PUT
+body:
+  type: json
+  content: "{\r
+
+    \    \"title\": \"Начинающий Java разработчик\",\r
+
+    \    \"description\": \"Главное знать базу, остальному научим!\",\r
+
+    \    \"salary_min\": 500000,\r
+
+    \    \"salary_max\": 90000,\r
+
+    \    \"company\": 3,\r
+
+    \    \"contact_email\": \"junior@test.com\",\r
+
+    \    \"contact_phone\": \"+79990000001\"\r
+
+    }"
+examples: .resources/POST Invalid Salary (Fail).resources/examples
+order: 1480773497765195
