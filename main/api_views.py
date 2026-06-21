@@ -3,10 +3,10 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
-from .permissions import IsOwnerOrAdmin 
+from .permissions import IsResumeOwnerOrAdmin, IsOwnerOrAdmin, IsReviewOwnerOrAdmin
 from django.db.models import Count, Avg, Q, QuerySet
-from .models import Vacancy, Application
-from .serializers import VacancySerializer, ApplicationSerializer
+from .models import Vacancy, Application, Resume, Review
+from .serializers import VacancySerializer, ApplicationSerializer, ResumeSerializer, ReviewSerializer
 
 
 class VacancyViewSet(viewsets.ModelViewSet):
@@ -200,3 +200,56 @@ class ApplicationViewSet(viewsets.ModelViewSet):
         if hasattr(user, 'recruiter_profile') and user.recruiter_profile.exists():
             return super().get_queryset().filter(vacancy__created_by=user)
         return super().get_queryset().filter(candidate=user)
+    
+class ResumeViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet для управления резюме соискателей
+    Пользователь может создавать и редактировать только своё резюме
+    """
+    serializer_class = ResumeSerializer
+    permission_classes = [IsResumeOwnerOrAdmin] 
+
+    def get_queryset(self):
+        """Соискатель видит только своё резюме, админ — все."""
+        user = self.request.user
+        if user.is_staff:
+            return Resume.objects.select_related('user').prefetch_related('skills')
+        return Resume.objects.filter(user=user)
+
+    def perform_create(self, serializer):
+        """Назначает текущего пользователя автором резюме."""
+        serializer.save(user=self.request.user)
+
+    def perform_update(self, serializer):
+        """Запрещает редактирование чужого резюме."""
+        if serializer.instance.user != self.request.user and not self.request.user.is_staff:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Вы можете редактировать только своё резюме")
+        super().perform_update(serializer)
+
+class ReviewViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet для управления отзывами.
+    Пользователь может оставлять отзывы только на опубликованные вакансии.
+    """
+    serializer_class = ReviewSerializer
+    permission_classes = [IsReviewOwnerOrAdmin]
+
+    def get_queryset(self):
+        """Все могут читать отзывы, писать/редактировать — только автор или админ."""
+        return Review.objects.select_related('user', 'vacancy__company')
+
+    def perform_create(self, serializer):
+        """Привязывает отзыв к пользователю и вакансии из данных запроса."""
+        vacancy_id = self.request.data.get('vacancy') 
+        if not vacancy_id:
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError("Необходимо указать ID вакансии")
+            
+        serializer.save(user=self.request.user, vacancy_id=vacancy_id)
+    @action(detail=False, methods=['get'], url_path='my-reviews')
+    def my_reviews(self, request):
+        """Получить все мои отзывы."""
+        reviews = self.get_queryset().filter(user=request.user)
+        serializer = self.get_serializer(reviews, many=True)
+        return Response(serializer.data)

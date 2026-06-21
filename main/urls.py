@@ -1,19 +1,20 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import views
-from .api_views import VacancyViewSet, ApplicationViewSet
+from .api_views import VacancyViewSet, ApplicationViewSet, ResumeViewSet, ReviewViewSet
 
 app_name = 'main'
 
-# роутер для автоматической генерации юрл в апи
 router = DefaultRouter()
 router.register(r'vacancies', VacancyViewSet, basename='vacancy-api')
 router.register(r'applications', ApplicationViewSet, basename='application-api')
+router.register(r'resumes', ResumeViewSet, basename='resume-api') 
+router.register(r'reviews', ReviewViewSet, basename='review-api') 
 
 urlpatterns = [
- path('', views.HomeView.as_view(), name='home'),
+    path('', views.HomeView.as_view(), name='home'),
     
-    # Вакансии
+    # Вакансии 
     path('vacancies/', views.VacancyListView.as_view(), name='vacancy_list'),
     path('vacancies/<int:pk>/', views.VacancyDetailView.as_view(), name='vacancy_detail'),
     path('vacancies/create/', views.VacancyCreateView.as_view(), name='vacancy_create'),
@@ -23,6 +24,6 @@ urlpatterns = [
     # Компании
     path('companies/', views.CompanyListView.as_view(), name='company_list'),
     
-    # эндпоинты для апи, что-то типа  /api/vacancies/, /api/vacancies/high_salary/, /api/applications/
+    # API эндпоиснты
     path('api/', include(router.urls)),
 ]

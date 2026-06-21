@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from simple_history.models import HistoricalRecords
 from django.core.validators import RegexValidator, EmailValidator
 from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 # валидаторы для контактов
 phone_regex = RegexValidator(
@@ -261,3 +262,58 @@ class Feedback(models.Model):
 
     def __str__(self):
         return f"Фидбэк от {self.created_by.email} для {self.interview.application.candidate.email}"
+
+
+class Resume(models.Model):
+    user = models.OneToOneField(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name='resume',
+        verbose_name="Пользователь"
+    )
+    title = models.CharField(max_length=200, verbose_name="Желаемая должность")
+    salary_expected = models.PositiveIntegerField(
+        null=True, blank=True, 
+        verbose_name="Ожидаемая зарплата"
+    )
+    experience_years = models.PositiveSmallIntegerField(
+        default=0, 
+        verbose_name="Опыт работы (лет)"
+    )
+    education = models.TextField(verbose_name="Образование")
+    skills = models.ManyToManyField('Skill', blank=True, verbose_name="Навыки")
+    about_me = models.TextField(blank=True, verbose_name="О себе")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Резюме"
+        verbose_name_plural = "Резюме"
+        ordering = ['-updated_at']
+
+    def __str__(self):
+        return f"{self.title} ({self.user.get_full_name() or self.user.username})"
+    
+
+class Review(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviews')
+    vacancy = models.ForeignKey('Vacancy', on_delete=models.CASCADE, related_name='reviews')
+
+    RATING_CHOICES = [(i, str(i)) for i in range(1, 6)]
+    rating = models.PositiveSmallIntegerField(
+        choices=RATING_CHOICES, 
+        validators=[MinValueValidator(1), MaxValueValidator(5)],
+        verbose_name="Оценка"
+    )
+    text = models.TextField(verbose_name="Текст отзыва")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Отзыв"
+        verbose_name_plural = "Отзывы"
+        ordering = ['-created_at']
+        unique_together = ['user', 'vacancy']  # один отзыв на одну вакансию от пользователя
+
+    def __str__(self):
+        return f"Отзыв {self.user} на {self.vacancy.title} ({self.rating}/5)"

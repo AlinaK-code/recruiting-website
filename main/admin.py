@@ -13,7 +13,7 @@ from .models import (
 # таблица-справочник навыков
 @admin.register(Skill)
 class SkillAdmin(admin.ModelAdmin):
-    list_display = ['name'] # то, какие столбцы показывать
+    list_display = ['id','name'] # то, какие столбцы показывать
     search_fields = ['name'] 
     ordering = ['name']
 
@@ -21,8 +21,8 @@ class SkillAdmin(admin.ModelAdmin):
 # компании
 @admin.register(Company)
 class CompanyAdmin(admin.ModelAdmin):
-    list_display = ['name', 'city', 'logo_preview', 'created_at'] # logo_preview - ф-ия возвр изображение
-    list_filter = ['city', 'created_at']
+    list_display = ['id','name', 'city', 'logo_preview', 'created_at'] # logo_preview - ф-ия возвр изображение
+    list_filter = ['id','city', 'created_at']
     search_fields = ['name', 'description']
     readonly_fields = ['created_at', 'updated_at']
     fields = ['name', 'description', 'logo', 'city', 'created_at', 'updated_at']
@@ -37,7 +37,7 @@ class CompanyAdmin(admin.ModelAdmin):
 # профили
 @admin.register(CandidateProfile)
 class CandidateProfileAdmin(admin.ModelAdmin):
-    list_display = ['full_name', 'user_email', 'avatar_preview', 'created_at']
+    list_display = ['id','full_name', 'user_email', 'avatar_preview', 'created_at']
     list_filter = ['created_at']
     search_fields = ['full_name', 'user__email']
     readonly_fields = ['created_at', 'updated_at']
@@ -57,7 +57,7 @@ class CandidateProfileAdmin(admin.ModelAdmin):
 
 @admin.register(RecruiterProfile)
 class RecruiterProfileAdmin(admin.ModelAdmin):
-    list_display = ['contact_person', 'company_name', 'user_email', 'created_at']
+    list_display = ['id','contact_person', 'company_name', 'user_email', 'created_at']
     list_filter = ['company', 'created_at']
     search_fields = ['contact_person', 'user__email', 'company__name']
     readonly_fields = ['created_at', 'updated_at']
@@ -113,8 +113,8 @@ class VacancyResource(resources.ModelResource):
 @admin.register(Vacancy)
 class VacancyAdmin(ImportExportModelAdmin):
     resource_class = VacancyResource
-    list_display = ['title', 'company_name', 'salary_range', 'status', 'created_by_email', 'created_at']
-    list_filter = ['status', 'company', 'created_at']
+    list_display = ['id','title', 'company_name', 'salary_range', 'status', 'created_by_email', 'created_at']
+    list_filter = ['id','status', 'company', 'created_at']
     search_fields = ['title', 'description']
     date_hierarchy = 'created_at'
     readonly_fields = ['created_at', 'updated_at']
@@ -144,8 +144,8 @@ class VacancyAdmin(ImportExportModelAdmin):
 # отклики
 @admin.register(Application)
 class ApplicationAdmin(admin.ModelAdmin):
-    list_display = ['candidate_email', 'vacancy_title', 'status', 'applied_at']
-    list_filter = ['status', 'applied_at']
+    list_display = ['id','candidate_email', 'vacancy_title', 'status', 'applied_at']
+    list_filter = ['id','status', 'applied_at']
     search_fields = ['candidate__email', 'vacancy__title']
     date_hierarchy = 'applied_at'
     readonly_fields = ['applied_at', 'reviewed_at']
@@ -163,8 +163,8 @@ class ApplicationAdmin(admin.ModelAdmin):
 # собеседования
 @admin.register(Interview)
 class InterviewAdmin(admin.ModelAdmin):
-    list_display = ['application_info', 'scheduled_at', 'format', 'status']
-    list_filter = ['format', 'status', 'scheduled_at']
+    list_display = ['id','application_info', 'scheduled_at', 'format', 'status']
+    list_filter = ['id','format', 'status', 'scheduled_at']
     date_hierarchy = 'scheduled_at'
     readonly_fields = ['created_at']
     raw_id_fields = ['application']
@@ -177,8 +177,8 @@ class InterviewAdmin(admin.ModelAdmin):
 # обратная связь
 @admin.register(Feedback)
 class FeedbackAdmin(admin.ModelAdmin):
-    list_display = ['interview_info', 'rating', 'created_by_email', 'created_at']
-    list_filter = ['rating', 'created_at']
+    list_display = ['id','interview_info', 'rating', 'created_by_email', 'created_at']
+    list_filter = ['id','rating', 'created_at']
     readonly_fields = ['created_at']
     raw_id_fields = ['interview', 'created_by']
 

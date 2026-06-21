@@ -23,3 +23,38 @@ class IsOwnerOrAdmin(BasePermission):
             request.user.is_staff or 
             getattr(obj, 'created_by', None) == request.user
         )
+    
+class IsResumeOwnerOrAdmin(BasePermission):
+    # разреш доступ только:
+    # - админам (is_staff)
+    # - владельцу резюме (поле user совпадает с request.user)
+   
+    def has_permission(self, request, view):
+        return request.user and request.user.is_authenticated
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in SAFE_METHODS:
+            return True
+            
+        return (
+            request.user.is_staff or 
+            getattr(obj, 'user', None) == request.user
+        )
+    
+class IsReviewOwnerOrAdmin(BasePermission):
+    # Разрешения для отзывов:
+    # - Чтение доступно всем
+    # - Запись только авторизованным
+    # - Редактирование/удаление только автору отзыва или админу
+    def has_permission(self, request, view):
+        if request.method in SAFE_METHODS:
+            return True
+        return request.user and request.user.is_authenticated
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in SAFE_METHODS:
+            return True
+        return (
+            request.user.is_staff or 
+            getattr(obj, 'user', None) == request.user
+        )
