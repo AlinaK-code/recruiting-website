@@ -3,7 +3,6 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
-from typing import Optional
 from .permissions import IsOwnerOrAdmin 
 from django.db.models import Count, Avg, Q, QuerySet
 from .models import Vacancy, Application
@@ -197,7 +196,7 @@ class ApplicationViewSet(viewsets.ModelViewSet):
             QuerySet[Application]: Отфильтрованный набор откликов
         """
         user = self.request.user
-        # смотрю есть ли у пользователя статус рекрутера
+        # смотрю есть ли у пользователя статус рекрутer
         if hasattr(user, 'recruiter_profile') and user.recruiter_profile.exists():
             return super().get_queryset().filter(vacancy__created_by=user)
         return super().get_queryset().filter(candidate=user)

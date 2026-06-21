@@ -10,6 +10,7 @@ services:
       - .env
     depends_on:
       - db
+      - sentry-web
     environment:
       - DOCKER=True
 
@@ -22,5 +23,52 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+
+  sentry-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: sentry
+      POSTGRES_PASSWORD: sentry
+      POSTGRES_DB: sentry
+    volumes:
+      - sentry-db-data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  sentry-web:
+    image: sentry:9.1.2
+    depends_on:
+      - sentry-db
+      - redis
+    environment:
+      SENTRY_SECRET_KEY: 'hjfhejrbrewbatatahajrerurdddksat'
+      SENTRY_POSTGRES_HOST: sentry-db
+      SENTRY_POSTGRES_PORT: 5432
+      SENTRY_DB_USER: sentry
+      SENTRY_DB_PASSWORD: sentry
+      SENTRY_DB_NAME: sentry
+      SENTRY_REDIS_HOST: redis
+      SENTRY_REDIS_PORT: 6379
+    ports:
+      - "9000:9000"
+    restart: unless-stopped
+
+  sentry-worker:
+    image: sentry:9.1.2
+    command: run worker
+    depends_on:
+      - sentry-db
+      - redis
+    environment:
+      SENTRY_SECRET_KEY: 'hjfhejrbrewbatatahajrerurdddksat'
+      SENTRY_POSTGRES_HOST: sentry-db
+      SENTRY_DB_USER: sentry
+      SENTRY_DB_PASSWORD: sentry
+      SENTRY_DB_NAME: sentry
+      SENTRY_REDIS_HOST: redis
+
 volumes:
   postgres_data:
+  sentry-db-data:
