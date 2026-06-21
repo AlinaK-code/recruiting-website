@@ -42,9 +42,11 @@ INSTALLED_APPS = [
     'import_export',
     'simple_history',
     'main',
+    'silk', 
 ]
 
 MIDDLEWARE = [
+    'silk.middleware.SilkyMiddleware', 
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -164,3 +166,8 @@ IMPORT_EXPORT_USE_TRANSACTIONS = True
 
 # Simple History settings
 SIMPLE_HISTORY_TRACKING_EXCLUDE = ['User']
+
+# Настройки для силки
+SILKY_AUTHENTICATION = True 
+SILKY_AUTHORISATION = True   
+SILKY_META = True 
