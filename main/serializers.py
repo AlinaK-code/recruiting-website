@@ -1,19 +1,26 @@
 from rest_framework import serializers
+from typing import Dict, Any
 from .models import (
     Skill, Company, Vacancy, Application
 )
 
 class SkillSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели навыка"""
     class Meta:
         model = Skill
         fields = '__all__'
 
 class CompanySerializer(serializers.ModelSerializer):
+    """Сериализатор для модели компании"""
     class Meta:
         model = Company
         fields = '__all__'
 
 class VacancySerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для вакансий.
+    Реализованы вычисляемые поля и проверка на уникальность
+    """
     company_name = serializers.CharField(source='company.name', read_only=True)
     skills_list = SkillSerializer(source='skills', many=True, read_only=True)
 
@@ -30,7 +37,19 @@ class VacancySerializer(serializers.ModelSerializer):
             'created_by': {'read_only': True}
         }
 
-    def validate(self, data):
+    def validate(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Проверяет, что правильно выставлены зп
+        
+        Args:
+            data: Словарь валидированных данных
+            
+        Returns:
+            Dict[str, Any]: Проверенные данные
+            
+        Raises:
+            serializers.ValidationError: Если min > max
+        """
         # написала кастомную валидацию для поля зп
         salary_min = data.get('salary_min')
         salary_max = data.get('salary_max')
@@ -42,7 +61,17 @@ class VacancySerializer(serializers.ModelSerializer):
     
     
     # реализация SerializerMethodField
-    def get_applications_count(self, obj):
+    def get_applications_count(self, obj: Vacancy) -> int:
+        """
+        Возвращает количество откликов на вакансию.
+        Использует аннотацию из queryset для оптимизации.
+        
+        Args:
+            obj: Экземпляр вакансии
+            
+        Returns:
+            int: Количество откликов
+        """
         # если queryset был аннотирован во view, берем значение оттуда 
         if hasattr(obj, 'applications_count'):
             return obj.applications_count
@@ -50,7 +79,17 @@ class VacancySerializer(serializers.ModelSerializer):
         return obj.applications.count()
 
     # реализация передачи данных через контекст
-    def get_is_owner(self, obj):
+    def get_is_owner(self, obj: Vacancy) -> bool:
+        """
+        Проверяет, является ли текущий пользователь автором вакансии.
+        Данные берутся из контекста запроса.
+        
+        Args:
+            obj: Экземпляр вакансии
+            
+        Returns:
+            bool: True если пользователь - автор
+        """
         request = self.context.get('request')
         if request and request.user.is_authenticated:
             return obj.created_by == request.user

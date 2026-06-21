@@ -3,13 +3,17 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
+from typing import Optional
 from .permissions import IsOwnerOrAdmin 
-from django.db.models import Count, Avg, Q 
+from django.db.models import Count, Avg, Q, QuerySet
 from .models import Vacancy, Application
 from .serializers import VacancySerializer, ApplicationSerializer
 
 
 class VacancyViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet для управления вакансиями через REST API
+    """
     queryset = Vacancy.objects.all()
     serializer_class = VacancySerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -23,7 +27,14 @@ class VacancyViewSet(viewsets.ModelViewSet):
     permission_classes = [IsOwnerOrAdmin] 
 
     # 4) фильтр по текущему пользователю
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[Vacancy]:
+        """
+        Возвращает оптимизированный queryset с аннотациями
+        фильтрует вакансии по статусу и правам пользователя
+        
+        Returns:
+            QuerySet[Vacancy]: Отфильтрованный набор вакансий
+        """
         user = self.request.user
         # оптимизированыый qs
         qs = Vacancy.objects.select_related('company', 'created_by').prefetch_related('skills')
@@ -40,13 +51,28 @@ class VacancyViewSet(viewsets.ModelViewSet):
          # Гость видит только опубликованные
         return qs.filter(status='published') 
 
-    def perform_create(self, serializer):
+    def perform_create(self, serializer: VacancySerializer) -> None:
+        """
+        Сохраняет новую вакансию, назначая текущего пользователя автором.
+        
+        Args:
+            serializer: Валидированный сериализатор вакансии
+        """
         # автоматом назначает текущего пользователя автором вакансии
         # при создании через апишку
         serializer.save(created_by=self.request.user)
 
     @action(detail=False, methods=['get'])
-    def high_salary(self, request):
+    def high_salary(self, request) -> Response:
+        """
+        Возвращает вакансии с зарплатой выше указанной.
+        
+        Args:
+            request: HTTP запрос с параметром min_salary
+            
+        Returns:
+            Response: Список высокооплачиваемых вакансий
+        """
         # 5) фильтр по GET, например ток зп >= 150k http://127.0.0.1:8000/api/vacancies/high_salary/?min_salary=150000
         min_salary = request.query_params.get('min_salary', 100000)
         # используею self.filter_queryset, чтобы применить оптимизацию и аннотации
@@ -56,7 +82,17 @@ class VacancyViewSet(viewsets.ModelViewSet):
 
     # 2 кастомных Q-запросов  
     @action(detail=False, methods=['get'])
-    def advanced_search_1(self, request):
+    def advanced_search_1(self, request)-> Response:
+        """
+        Возвращает вакансии, которые опубликованы (или созданы мной) 
+        и при этом не находятся в статусе 'closed'
+        
+        Args:
+            request: HTTP запрос
+            
+        Returns:
+            Response: Список отфильтрованных вакансий
+        """
         # Вакансии (опубликованы ИЛИ мои) И НЕ закрытые
         user = request.user
         queryset = Vacancy.objects.filter(
@@ -66,8 +102,17 @@ class VacancyViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @action(detail=False, methods=['get'])
-    def advanced_search_2(self, request):
-        # Вакансии НЕ черновики И (зарплата от 100000 ИЛИ созданы мной)
+    def advanced_search_2(self, request)-> Response:
+        """
+        Возвращает вакансии которые не
+        черновики и (зарплата от 100000 или созданы мной)
+        
+        Args:
+            request: HTTP запрос
+            
+        Returns:
+            Response: Список отфильтрованных вакансий
+        """
         user = request.user
         queryset = Vacancy.objects.filter(
             ~Q(status='draft') & (Q(salary_min__gte=100000) | Q(created_by=user))
@@ -77,8 +122,17 @@ class VacancyViewSet(viewsets.ModelViewSet):
     
     # 'OR' Q-запрос:
     @action(detail=False, methods=['get'])
-    def complex_search(self, request):
-        #  опубликованные ИЛИ созданные мной
+    def complex_search(self, request)-> Response:
+        """
+        возвращает все опубликованные вакансии 
+        или созданные текущим пользователем
+        
+        Args:
+            request: HTTP запрос
+            
+        Returns:
+            Response: Список вакансий
+        """
         user = request.user
         queryset = Vacancy.objects.filter(
             Q(status='published') | Q(created_by=user)
@@ -86,16 +140,35 @@ class VacancyViewSet(viewsets.ModelViewSet):
         return Response(VacancySerializer(queryset, many=True).data)
     
     @action(detail=True, methods=['post'])
-    def close(self, request, pk=None):
-        # Закрыть вакансию
+    def close(self, request, pk=None)-> Response:
+        """
+        закрывает вакансию
+        
+        Args:
+            request: HTTP запрос
+            pk: Первичный ключ вакансии
+            
+        Returns:
+            Response: Подтверждение изменения статуса
+        """
         vacancy = self.get_object()
         vacancy.status = 'closed'
         vacancy.save()
         return Response({'status': 'Вакансия закрыта'}, status=status.HTTP_200_OK)
     
     @action(detail=True, methods=['get'])
-    def history(self, request, pk=None):
-        # получить историю изменений вакансии
+    def history(self, request, pk=None)-> Response:
+        """
+        Возвращает историю изменений конкретной вакансии 
+        через django-simple-history
+        
+        Args:
+            request: HTTP запрос
+            pk: Первичный ключ вакансии
+            
+        Returns:
+            Response: Список записей истории изменений
+        """
         vacancy = self.get_object()
         history = vacancy.history.all()
         return Response([
@@ -107,7 +180,24 @@ class VacancyViewSet(viewsets.ModelViewSet):
             for h in history
         ])
 class ApplicationViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet для управления откликами на вакансии
+    """
     queryset = Application.objects.all()
     serializer_class = ApplicationSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['status', 'vacancy']
+
+    def get_queryset(self):
+        """
+        Фильтрует отклики: рекрутер видит отклики на свои вакансии, 
+        соискатель - только свои отклики.
+        
+        Returns:
+            QuerySet[Application]: Отфильтрованный набор откликов
+        """
+        user = self.request.user
+        # смотрю есть ли у пользователя статус рекрутера
+        if hasattr(user, 'recruiter_profile') and user.recruiter_profile.exists():
+            return super().get_queryset().filter(vacancy__created_by=user)
+        return super().get_queryset().filter(candidate=user)
