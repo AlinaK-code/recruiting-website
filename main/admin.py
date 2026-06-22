@@ -18,20 +18,52 @@ class SkillAdmin(admin.ModelAdmin):
     ordering = ['name']
 
 
-# компании
 @admin.register(Company)
 class CompanyAdmin(admin.ModelAdmin):
-    list_display = ['id','name', 'city', 'logo_preview', 'created_at'] # logo_preview - ф-ия возвр изображение
+    list_display = ['id', 'name', 'city', 'logo_preview', 'created_at']
     list_filter = ['city', 'created_at']
     search_fields = ['name', 'description']
     readonly_fields = ['created_at', 'updated_at']
     fields = ['name', 'description', 'logo', 'city', 'created_at', 'updated_at']
 
-    @admin.display(description="Логотип") # создаю кастомные столбцы для того, чтобы можно было видеть фото
+    @admin.display(description="Логотип")
     def logo_preview(self, obj):
-        if obj.logo: #если нет фото
+        if obj.logo:
             return format_html('<img src="{}" style="max-height: 50px;"/>', obj.logo.url)
         return "-"
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        
+        # Администратор видит ВСЕ компании
+        if request.user.is_staff:
+            return qs
+            
+        # Рекрутер видит ТОЛЬКО свою компанию
+        if hasattr(request.user, 'recruiter_profile') and request.user.recruiter_profile:
+            recruiter_company = request.user.recruiter_profile.company
+            return qs.filter(pk=recruiter_company.pk)
+            
+        # Обычный пользователь не видит ничего
+        return qs.none()
+
+    def save_model(self, request, obj, form, change):
+        # Если это не админ, проверяем права рекрутера
+        if not request.user.is_staff:
+            if hasattr(request.user, 'recruiter_profile') and request.user.recruiter_profile:
+                # Запрещаем редактировать чужую компанию или создавать новую
+                if obj.pk and obj.pk != request.user.recruiter_profile.company.pk:
+                    from django.core.exceptions import PermissionDenied
+                    raise PermissionDenied("Вы можете редактировать только свою компанию.")
+            else:
+                from django.core.exceptions import PermissionDenied
+                raise PermissionDenied("У вас нет прав для управления компаниями.")
+                
+        super().save_model(request, obj, form, change)
+
+    def has_add_permission(self, request):
+        """Создание новых компаний доступно ТОЛЬКО администраторам"""
+        return request.user.is_staff
 
 
 # профили

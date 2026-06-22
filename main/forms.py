@@ -1,6 +1,6 @@
 # main/forms.py
 from django import forms
-from .models import Vacancy
+from .models import Vacancy, Company
 
 class VacancyForm(forms.ModelForm):
     class Meta:
@@ -34,3 +34,20 @@ class VacancyForm(forms.ModelForm):
         for field_name, field in self.fields.items():
             if field_name != 'skills':
                 field.widget.attrs.update({'class': 'form-control'})
+
+class CompanyForm(forms.ModelForm):
+    class Meta:
+        model = Company
+        fields = ['name', 'description', 'logo', 'city']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+            'logo': forms.FileInput(attrs={'class': 'form-control'}),
+            'city': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+        labels = {
+            'name': 'Название компании',
+            'description': 'Описание',
+            'logo': 'Логотип',
+            'city': 'Город',
+        }

@@ -1,6 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import views
+from .views import CompanyUpdateView
 from .api_views import VacancyViewSet, ApplicationViewSet, ResumeViewSet, ReviewViewSet
 
 app_name = 'main'
@@ -23,6 +24,7 @@ urlpatterns = [
     
     # Компании\
     path('companies/', views.CompanyListView.as_view(), name='company_list'),
+    path('companies/<int:pk>/edit/', CompanyUpdateView.as_view(), name='company_edit'),
     
     # API эндпоиснты
     path('api/', include(router.urls)),

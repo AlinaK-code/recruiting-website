@@ -24,7 +24,6 @@ class Skill(models.Model):
     def __str__(self):
         return self.name
 
-
 # компания
 class Company(models.Model):
     name = models.CharField(max_length=255, verbose_name="Название")

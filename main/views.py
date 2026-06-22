@@ -5,6 +5,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from .models import Vacancy, Company
 from .forms import VacancyForm 
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import PermissionDenied
+from .forms import CompanyForm
 
 class HomeView(TemplateView):
     template_name = 'main/home.html'
@@ -48,7 +51,6 @@ class VacancyCreateView(LoginRequiredMixin, CreateView):
         print("="*50)
         return super().form_invalid(form)
 
-# ВОССТАНОВЛЕННЫЕ КЛАССЫ:
 class VacancyUpdateView(LoginRequiredMixin, UpdateView):
     model = Vacancy
     form_class = VacancyForm
@@ -66,3 +68,30 @@ class CompanyListView(ListView):
     model = Company
     template_name = 'main/company_list.html'
     context_object_name = 'companies'
+
+
+class CompanyUpdateView(LoginRequiredMixin, UpdateView):
+    model = Company
+    form_class = CompanyForm
+    template_name = 'main/company_form.html'
+    
+    def get_object(self, queryset=None):
+        """Получаем объект компании с проверкой прав."""
+        obj = super().get_object(queryset)
+        
+        # Админ может редактировать любую компанию
+        if self.request.user.is_staff:
+            return obj
+            
+        # Рекрутер может редактировать ТОЛЬКО свою компанию
+        if hasattr(self.request.user, 'recruiter_profile') and self.request.user.recruiter_profile:
+            if obj.pk == self.request.user.recruiter_profile.company.pk:
+                return obj
+                
+        # Все остальные — доступ запрещен
+        raise PermissionDenied("У вас нет прав для редактирования этой компании.")
+    
+    def get_success_url(self):
+        # После сохранения возвращаемся в профиль
+        from django.urls import reverse_lazy
+        return reverse_lazy('accounts:profile')
