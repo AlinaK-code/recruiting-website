@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import views
-from .views import CompanyUpdateView
+from .views import CompanyUpdateView, ResumeCreateView, ResumeUpdateView
 from .api_views import VacancyViewSet, ApplicationViewSet, ResumeViewSet, ReviewViewSet
 
 app_name = 'main'
@@ -26,6 +26,10 @@ urlpatterns = [
     path('companies/', views.CompanyListView.as_view(), name='company_list'),
     path('companies/<int:pk>/edit/', CompanyUpdateView.as_view(), name='company_edit'),
     
+    # резюме
+    path('resume/create/', ResumeCreateView.as_view(), name='resume_create'),
+    path('resume/<int:pk>/edit/', ResumeUpdateView.as_view(), name='resume_edit'),
+
     # API эндпоиснты
     path('api/', include(router.urls)),
 ]

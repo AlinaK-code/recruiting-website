@@ -1,6 +1,6 @@
 # main/forms.py
 from django import forms
-from .models import Vacancy, Company
+from .models import Vacancy, Company, Resume
 
 class VacancyForm(forms.ModelForm):
     class Meta:
@@ -50,4 +50,23 @@ class CompanyForm(forms.ModelForm):
             'description': 'Описание',
             'logo': 'Логотип',
             'city': 'Город',
+        }
+
+class ResumeForm(forms.ModelForm):
+    class Meta:
+        model = Resume
+        fields = ['title', 'experience_years', 'salary_expected', 'education', 'skills']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Например: Python Backend Developer'}),
+            'experience_years': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
+            'salary_expected': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Желаемая зарплата'}),
+            'education': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'ВУЗ, специальность, год окончания...'}),
+            'skills': forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
+        }
+        labels = {
+            'title': 'Желаемая должность',
+            'experience_years': 'Опыт работы (лет)',
+            'salary_expected': 'Желаемая зарплата (₽)',
+            'education': 'Образование',
+            'skills': 'Ключевые навыки',
         }

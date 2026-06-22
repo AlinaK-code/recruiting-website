@@ -8,6 +8,8 @@ from .forms import VacancyForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from .forms import CompanyForm
+from .forms import ResumeForm
+from .models import Resume
 
 class HomeView(TemplateView):
     template_name = 'main/home.html'
@@ -93,5 +95,36 @@ class CompanyUpdateView(LoginRequiredMixin, UpdateView):
     
     def get_success_url(self):
         # После сохранения возвращаемся в профиль
+        from django.urls import reverse_lazy
+        return reverse_lazy('accounts:profile')
+    
+class ResumeCreateView(LoginRequiredMixin, CreateView):
+    model = Resume
+    form_class = ResumeForm
+    template_name = 'main/resume_form.html'
+    
+    def form_valid(self, form):
+        # Автоматически привязываем резюме к текущему пользователю
+        form.instance.user = self.request.user
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        from django.urls import reverse_lazy
+        return reverse_lazy('accounts:profile')
+
+
+class ResumeUpdateView(LoginRequiredMixin, UpdateView):
+    model = Resume
+    form_class = ResumeForm
+    template_name = 'main/resume_form.html'
+    
+    def get_object(self, queryset=None):
+        """Защищаем редактирование: только владелец или админ."""
+        obj = super().get_object(queryset)
+        if obj.user != self.request.user and not self.request.user.is_staff:
+            raise PermissionDenied("Вы можете редактировать только своё резюме")
+        return obj
+    
+    def get_success_url(self):
         from django.urls import reverse_lazy
         return reverse_lazy('accounts:profile')
