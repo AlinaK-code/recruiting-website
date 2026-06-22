@@ -7,35 +7,40 @@
 <div class="container py-4">
     <div class="row">
         <!-- ЛЕВАЯ КОЛОНКА: Информация о вакансии и Отзывы -->
-        <div class="col-md-8">
+        <div class="col-md-8 px-3 rounded-pill">
             <!-- Карточка вакансии -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-white">
-                    <h2 class="mb-0">{{ vacancy.title }}</h2>
-                    <p class="text-muted mb-0">{{ vacancy.company.name }} • {{ vacancy.company.city }}</p>
+            <div class="card shadow-sm mb-4 border-0">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-2 px-4">
+                    <h2 class="mb-1 fw-bold text-dark">{{ vacancy.title }}</h2>
+                    <p class="text-muted mb-0 small">
+                        {{ vacancy.company.name }} &bull; {{ vacancy.company.city }}
+                    </p>
                 </div>
-                <div class="card-body">
+
+                <div class="card-body px-4 pt-2 pb-4">
                     {% if vacancy.salary_min or vacancy.salary_max %}
-                    <div class="alert alert-success d-inline-block mb-3">
+                    <div class="alert alert-success d-inline-block mb-3 py-2 px-3 rounded-pill">
                         <strong>Зарплата:</strong>
                         {% if vacancy.salary_min and vacancy.salary_max %}
-                            {{ vacancy.salary_min }} – {{ vacancy.salary_max }} ₽
+                        {{ vacancy.salary_min }} – {{ vacancy.salary_max }} ₽
                         {% elif vacancy.salary_min %}
-                            от {{ vacancy.salary_min }} ₽
+                        от {{ vacancy.salary_min }} ₽
                         {% else %}
-                            до {{ vacancy.salary_max }} ₽
+                        до {{ vacancy.salary_max }} ₽
                         {% endif %}
                     </div>
                     {% endif %}
 
-                    <h4 class="mt-3">Описание</h4>
-                    <p>{{ vacancy.description|linebreaks }}</p>
+                    <h5 class="mt-4 mb-3 fw-bold text-secondary small text-uppercase ls-1">Описание</h5>
+                    <p class="text-dark lh-lg">{{ vacancy.description|linebreaks }}</p>
 
                     {% if vacancy.skills.all %}
-                    <h4 class="mt-4">Требуемые навыки</h4>
+                    <h5 class="mt-4 mb-3 fw-bold text-secondary small text-uppercase ls-1">Требуемые навыки</h5>
                     <div class="d-flex flex-wrap gap-2">
                         {% for skill in vacancy.skills.all %}
-                            <span class="badge bg-secondary">{{ skill.name }}</span>
+                        <span class="badge bg-light text-dark border px-3 py-2 rounded-pill fw-normal">
+                            {{ skill.name }}
+                        </span>
                         {% endfor %}
                     </div>
                     {% endif %}
@@ -61,14 +66,12 @@
                         </select>
                     </div>
                     <div class="mb-2">
-                        <textarea id="reviewText" class="form-control form-control-sm" rows="2" placeholder="Поделитесь впечатлениями..."></textarea>
+                        <textarea id="reviewText" class="form-control form-control-sm" rows="2"
+                            placeholder="Поделитесь впечатлениями..."></textarea>
                     </div>
-                    
-                    <!-- Данные вынесены в data-атрибуты для чистого JS -->
-                    <button id="submitReviewBtn" 
-                            class="btn btn-primary btn-sm mt-1"
-                            data-vacancy-id="{{ vacancy.pk }}"
-                            data-csrf-token="{{ csrf_token }}">
+
+                    <button id="submitReviewBtn" class="btn btn-primary btn-sm mt-1" data-vacancy-id="{{ vacancy.pk }}"
+                        data-csrf-token="{{ csrf_token }}">
                         Отправить отзыв
                     </button>
                     <small id="reviewMsg" class="d-block mt-2"></small>
@@ -76,7 +79,8 @@
             </div>
             {% else %}
             <div class="alert alert-info py-2 mb-4">
-                <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="fw-bold">Войдите</a>, чтобы оставить отзыв.
+                <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="fw-bold">Войдите</a>, чтобы оставить
+                отзыв.
             </div>
             {% endif %}
 
@@ -90,108 +94,123 @@
                     </div>
                     <div class="text-warning small mb-2">
                         {% for i in "12345" %}
-                            {% if forloop.counter <= review.rating %}⭐{% endif %}
-                        {% endfor %}
+                        {% if forloop.counter <= review.rating %}⭐{% endif %} {% endfor %} </div>
+                            <p class="mb-0 text-secondary">{{ review.text }}</p>
+
+                            {% if user.is_staff or user == review.user %}
+                            <button class="btn btn-link btn-sm p-0 text-danger mt-2 delete-review-btn"
+                                data-id="{{ review.pk }}">Удалить</button>
+                            {% endif %}
                     </div>
-                    <p class="mb-0 text-secondary">{{ review.text }}</p>
-                    
-                    {% if user.is_staff or user == review.user %}
-                        <button class="btn btn-link btn-sm p-0 text-danger mt-2 delete-review-btn" data-id="{{ review.pk }}">Удалить</button>
-                    {% endif %}
+                    {% empty %}
+                    <p class="text-muted fst-italic">Пока нет отзывов. Будьте первым!</p>
+                    {% endfor %}
                 </div>
-                {% empty %}
-                <p class="text-muted fst-italic">Пока нет отзывов. Будьте первым!</p>
-                {% endfor %}
-            </div>
 
-            <!-- Чистый JavaScript для отзывов (без тегов Django) -->
-            <script>
-            const reviewBtn = document.getElementById('submitReviewBtn');
-            if (reviewBtn) {
-                reviewBtn.addEventListener('click', function() {
-                    const rating = document.getElementById('reviewRating').value;
-                    const text = document.getElementById('reviewText').value.trim();
-                    const msg = document.getElementById('reviewMsg');
-                    
-                    const vacancyId = parseInt(this.dataset.vacancyId);
-                    const csrfToken = this.dataset.csrfToken;
-                    
-                    if (!text) {
-                        msg.className = 'text-danger d-block mt-2';
-                        msg.textContent = 'Пожалуйста, напишите текст отзыва!';
-                        return;
+                <!-- ВСЕ СКРИПТЫ В ОДНОМ МЕСТЕ (БЕЗ УСЛОВИЙ РОЛЕЙ) -->
+                <script>
+                    // 1. ОТПРАВКА ОТЗЫВА
+                    const reviewBtn = document.getElementById('submitReviewBtn');
+                    if (reviewBtn) {
+                        reviewBtn.addEventListener('click', function () {
+                            const rating = document.getElementById('reviewRating').value;
+                            const text = document.getElementById('reviewText').value.trim();
+                            const msg = document.getElementById('reviewMsg');
+                            const vacancyId = parseInt(this.dataset.vacancyId);
+                            const csrfToken = this.dataset.csrfToken;
+
+                            if (!text) {
+                                msg.className = 'text-danger d-block mt-2';
+                                msg.textContent = 'Пожалуйста, напишите текст отзыва!';
+                                return;
+                            }
+
+                            reviewBtn.disabled = true;
+                            reviewBtn.textContent = 'Отправка...';
+
+                            fetch('/api/reviews/', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+                                body: JSON.stringify({ vacancy: vacancyId, rating: parseInt(rating), text: text })
+                            })
+                                .then(async res => {
+                                    if (res.ok || res.status === 201) location.reload();
+                                    else throw new Error((await res.json()).detail || 'Ошибка');
+                                })
+                                .catch(err => {
+                                    msg.className = 'text-danger d-block mt-2';
+                                    msg.textContent = err.message;
+                                    reviewBtn.disabled = false;
+                                    reviewBtn.textContent = 'Отправить отзыв';
+                                });
+                        });
                     }
-                    
-                    reviewBtn.disabled = true;
-                    reviewBtn.textContent = 'Отправка...';
-                    
-                    fetch('/api/reviews/', {
-                        method: 'POST',
-                        headers: { 
-                            'Content-Type': 'application/json', 
-                            'X-CSRFToken': csrfToken 
-                        },
-                        body: JSON.stringify({ 
-                            vacancy: vacancyId, 
-                            rating: parseInt(rating), 
-                            text: text 
-                        })
-                    })
-                    .then(async res => {
-                        if (res.ok || res.status === 201) {
-                            location.reload();
-                        } else {
-                            const data = await res.json();
-                            throw new Error(data.detail || JSON.stringify(data));
-                        }
-                    })
-                    .catch(err => {
-                        msg.className = 'text-danger d-block mt-2';
-                        msg.textContent = err.message;
-                        reviewBtn.disabled = false;
-                        reviewBtn.textContent = 'Отправить отзыв';
+
+                    // 2. УДАЛЕНИЕ ОТЗЫВА (РАБОТАЕТ ДЛЯ ВСЕХ АВТОРИЗОВАННЫХ С ПРАВАМИ)
+                    document.querySelectorAll('.delete-review-btn').forEach(btn => {
+                        btn.addEventListener('click', function () {
+                            if (!confirm('Вы уверены, что хотите удалить этот отзыв?')) return;
+
+                            const reviewId = this.dataset.id;
+                            const csrfToken = '{{ csrf_token }}';
+
+                            fetch(`/api/reviews/${reviewId}/`, {
+                                method: 'DELETE',
+                                headers: { 'X-CSRFToken': csrfToken }
+                            })
+                                .then(res => {
+                                    if (res.ok) {
+                                        this.closest('.border-bottom').remove();
+                                        const list = document.getElementById('reviewsList');
+                                        if (!list.querySelector('.border-bottom')) {
+                                            list.innerHTML = '<p class="text-muted fst-italic">Пока нет отзывов. Будьте первым!</p>';
+                                        }
+                                    } else {
+                                        alert('Ошибка при удалении. Возможно, у вас нет прав.');
+                                    }
+                                })
+                                .catch(err => {
+                                    console.error('Delete failed:', err);
+                                    alert('Произошла ошибка сети.');
+                                });
+                        });
                     });
-                });
-            }
-            </script>
-            
-        </div> <!-- Конец левой колонки col-md-8 -->
+                </script>
 
-        <!-- ПРАВАЯ КОЛОНКА: Действия и Контакты -->
-        <div class="col-md-4">
-            <div class="card shadow-sm sticky-top" style="top: 20px;">
-                <div class="card-body">
-                    
-                    <!-- Контакты работодателя -->
-                    {% if vacancy.contact_email or vacancy.contact_phone %}
-                    <div class="mb-4 p-3 bg-light rounded border">
-                        <h6 class="fw-bold mb-3 text-primary">Контакты работодателя</h6>
-                        {% if vacancy.contact_email %}
-                        <div class="mb-2 d-flex align-items-center">
-                            <a href="mailto:{{ vacancy.contact_email }}" class="text-decoration-none text-dark fw-bold">{{ vacancy.contact_email }}</a>
+            </div> <!-- Конец левой колонки col-md-8 -->
+
+            <!-- ПРАВАЯ КОЛОНКА: Действия и Контакты -->
+            <div class="col-md-4">
+                <div class="card shadow-sm sticky-top" style="top: 20px;">
+                    <div class="card-body">
+
+                        {% if vacancy.contact_email or vacancy.contact_phone %}
+                        <div class="mb-4 p-3 bg-light rounded border">
+                            <h6 class="fw-bold mb-3 text-primary">Контакты работодателя</h6>
+                            {% if vacancy.contact_email %}
+                            <div class="mb-2 d-flex align-items-center">
+                                <a href="mailto:{{ vacancy.contact_email }}"
+                                    class="text-decoration-none text-dark fw-bold">{{ vacancy.contact_email }}</a>
+                            </div>
+                            {% endif %}
+                            {% if vacancy.contact_phone %}
+                            <div class="d-flex align-items-center">
+                                <a href="tel:{{ vacancy.contact_phone }}"
+                                    class="text-decoration-none text-dark fw-bold">{{ vacancy.contact_phone }}</a>
+                            </div>
+                            {% endif %}
                         </div>
                         {% endif %}
-                        {% if vacancy.contact_phone %}
-                        <div class="d-flex align-items-center">
-                            <a href="tel:{{ vacancy.contact_phone }}" class="text-decoration-none text-dark fw-bold">{{ vacancy.contact_phone }}</a>
-                        </div>
-                        {% endif %}
-                    </div>
-                    {% endif %}
 
-                    <!-- Кнопка отклика с data-атрибутами -->
-                    {% if user.is_authenticated %}
+                        {% if user.is_authenticated %}
                         {% if user.candidate_profile %}
-                            <button id="applyBtn" 
-                                    class="btn btn-primary w-100 mb-2" 
-                                    data-vacancy-id="{{ vacancy.pk }}" 
-                                    data-csrf-token="{{ csrf_token }}">
-                                Откликнуться
-                            </button>
-                            <small id="applyMsg" class="text-muted d-block text-center mb-3"></small>
-                            
-                            <!-- Чистый JavaScript для отклика (без тегов Django) -->
-                            <script>
+                        <button id="applyBtn" class="btn btn-primary w-100 mb-2" data-vacancy-id="{{ vacancy.pk }}"
+                            data-csrf-token="{{ csrf_token }}">
+                            Откликнуться
+                        </button>
+                        <small id="applyMsg" class="text-muted d-block text-center mb-3"></small>
+
+                        <script>
                             document.getElementById('applyBtn').addEventListener('click', function () {
                                 const btn = this;
                                 const msg = document.getElementById('applyMsg');
@@ -206,47 +225,46 @@
                                     headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
                                     body: JSON.stringify({ vacancy: vacancyId })
                                 })
-                                .then(async response => {
-                                    if (response.ok) {
-                                        msg.className = 'text-success d-block text-center mb-3';
-                                        msg.textContent = 'Отклик успешно отправлен!';
-                                        btn.style.display = 'none';
-                                    } else {
-                                        const errorData = await response.json();
-                                        console.error('API Error:', errorData);
-                                        if (errorData.non_field_errors && errorData.non_field_errors.some(e => e.includes('unique'))) {
-                                            throw new Error('Вы уже откликались на эту вакансию!');
+                                    .then(async response => {
+                                        if (response.ok) {
+                                            msg.className = 'text-success d-block text-center mb-3';
+                                            msg.textContent = 'Отклик успешно отправлен!';
+                                            btn.style.display = 'none';
+                                        } else {
+                                            const errorData = await response.json();
+                                            if (errorData.non_field_errors && errorData.non_field_errors.some(e => e.includes('unique'))) {
+                                                throw new Error('Вы уже откликались на эту вакансию!');
+                                            }
+                                            throw new Error(errorData.detail || 'Ошибка при отправке отклика');
                                         }
-                                        throw new Error(errorData.detail || 'Ошибка при отправке отклика');
-                                    }
-                                })
-                                .catch(error => {
-                                    console.error('Fetch failed:', error);
-                                    msg.className = 'text-danger d-block text-center mb-3';
-                                    msg.textContent = error.message;
-                                    btn.disabled = false;
-                                    btn.textContent = 'Откликнуться';
-                                });
+                                    })
+                                    .catch(error => {
+                                        msg.className = 'text-danger d-block text-center mb-3';
+                                        msg.textContent = error.message;
+                                        btn.disabled = false;
+                                        btn.textContent = 'Откликнуться';
+                                    });
                             });
-                            </script>
+                        </script>
 
                         {% elif user.recruiter_profile %}
-                            <div class="alert alert-info text-center p-2 mb-2">
-                                <small>Вы работодатель. Отклики в ЛК.</small>
-                            </div>
+                        <div class="alert alert-info text-center p-2 mb-2">
+                            <small>Вы работодатель. Отклики в ЛК.</small>
+                        </div>
                         {% endif %}
-                    {% else %}
-                        <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="btn btn-outline-primary w-100 mb-2">
+                        {% else %}
+                        <a href="{% url 'accounts:login' %}?next={{ request.path }}"
+                            class="btn btn-outline-primary w-100 mb-2">
                             Войдите, чтобы откликнуться
                         </a>
-                    {% endif %}
+                        {% endif %}
 
-                    <hr>
-                    <a href="{% url 'main:vacancy_list' %}" class="btn btn-outline-secondary w-100">← К списку</a>
+                        <hr>
+                        <a href="{% url 'main:vacancy_list' %}" class="btn btn-outline-secondary w-100">← К списку</a>
+                    </div>
                 </div>
-            </div>
-        </div> <!-- Конец правой колонки col-md-4 -->
-        
-    </div> <!-- Конец row -->
-</div> <!-- Конец container -->
-{% endblock %}
+            </div> <!-- Конец правой колонки col-md-4 -->
+
+        </div> <!-- Конец row -->
+    </div> <!-- Конец container -->
+    {% endblock %}
