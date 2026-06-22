@@ -1,3 +1,4 @@
+<!-- templates/main/vacancy_detail.html -->
 {% extends "base.html" %}
 
 {% block title %}{{ vacancy.title }}{% endblock %}
@@ -17,11 +18,11 @@
                     <div class="alert alert-success d-inline-block mb-3">
                         <strong>Зарплата:</strong>
                         {% if vacancy.salary_min and vacancy.salary_max %}
-                        {{ vacancy.salary_min }} – {{ vacancy.salary_max }} ₽
+                            {{ vacancy.salary_min }} – {{ vacancy.salary_max }} ₽
                         {% elif vacancy.salary_min %}
-                        от {{ vacancy.salary_min }} ₽
+                            от {{ vacancy.salary_min }} ₽
                         {% else %}
-                        до {{ vacancy.salary_max }} ₽
+                            до {{ vacancy.salary_max }} ₽
                         {% endif %}
                     </div>
                     {% endif %}
@@ -33,7 +34,7 @@
                     <h4 class="mt-4">Требуемые навыки</h4>
                     <div class="d-flex flex-wrap gap-2">
                         {% for skill in vacancy.skills.all %}
-                        <span class="badge bg-secondary">{{ skill.name }}</span>
+                            <span class="badge bg-secondary">{{ skill.name }}</span>
                         {% endfor %}
                     </div>
                     {% endif %}
@@ -41,40 +42,63 @@
             </div>
         </div>
 
-        <!-- Правая колонка: Действия -->
+        <!-- Правая колонка: Действия и Контакты -->
         <div class="col-md-4">
             <div class="card shadow-sm sticky-top" style="top: 20px;">
                 <div class="card-body">
+                    
+                    <!-- БЛОК КОНТАКТОВ РАБОТОДАТЕЛЯ -->
+                    {% if vacancy.contact_email or vacancy.contact_phone %}
+                    <div class="mb-4 p-3 bg-light rounded border">
+                        <h6 class="fw-bold mb-3 text-primary">Контакты работодателя</h6>
+                        
+                        {% if vacancy.contact_email %}
+                        <div class="mb-2 d-flex align-items-center">
+                            <span class="me-2">️</span>
+                            <a href="mailto:{{ vacancy.contact_email }}" class="text-decoration-none text-dark fw-bold">
+                                {{ vacancy.contact_email }}
+                            </a>
+                        </div>
+                        {% endif %}
+                        
+                        {% if vacancy.contact_phone %}
+                        <div class="d-flex align-items-center">
+                            <a href="tel:{{ vacancy.contact_phone }}" class="text-decoration-none text-dark fw-bold">
+                                {{ vacancy.contact_phone }}
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- ДЕЙСТВИЯ ПОЛЬЗОВАТЕЛЯ -->
                     {% if user.is_authenticated %}
-                    {% if user.candidate_profile %}
-                    <!-- Кнопка с data-атрибутами -->
-                    <button id="applyBtn" class="btn btn-primary w-100 mb-2" data-vacancy-id="{{ vacancy.pk }}"
-                        data-csrf-token="{{ csrf_token }}">
-                        Откликнуться
-                    </button>
-                    <small id="applyMsg" class="text-muted d-block text-center mb-3"></small>
+                        {% if user.candidate_profile %}
+                            <button id="applyBtn" class="btn btn-primary w-100 mb-2" 
+                                    data-vacancy-id="{{ vacancy.pk }}"
+                                    data-csrf-token="{{ csrf_token }}">
+                                Откликнуться
+                            </button>
+                            <small id="applyMsg" class="text-muted d-block text-center mb-3"></small>
+                            
+                            <script>
+                            document.getElementById('applyBtn').addEventListener('click', function () {
+                                const btn = this;
+                                const msg = document.getElementById('applyMsg');
+                                const vacancyId = parseInt(btn.dataset.vacancyId);
+                                const csrfToken = btn.dataset.csrfToken;
 
-                    <script>
-                        document.getElementById('applyBtn').addEventListener('click', function () {
-                            const btn = this;
-                            const msg = document.getElementById('applyMsg');
+                                btn.disabled = true;
+                                btn.textContent = 'Отправка...';
 
-                            const vacancyId = parseInt(btn.dataset.vacancyId);
-                            const csrfToken = btn.dataset.csrfToken;
-
-                            btn.disabled = true;
-                            btn.textContent = 'Отправка...';
-
-                            fetch('/api/applications/', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-CSRFToken': csrfToken
-                                },
-                                body: JSON.stringify({
-                                    vacancy: vacancyId
+                                fetch('/api/applications/', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRFToken': csrfToken
+                                    },
+                                    body: JSON.stringify({ vacancy: vacancyId })
                                 })
-                            })
                                 .then(async response => {
                                     if (response.ok) {
                                         msg.className = 'text-success d-block text-center mb-3';
@@ -83,13 +107,9 @@
                                     } else {
                                         const errorData = await response.json();
                                         console.error('API Error:', errorData);
-
-                                        // Проверка на дубликат отклика
-                                        if (errorData.non_field_errors &&
-                                            errorData.non_field_errors.some(e => e.includes('unique'))) {
+                                        if (errorData.non_field_errors && errorData.non_field_errors.some(e => e.includes('unique'))) {
                                             throw new Error('Вы уже откликались на эту вакансию!');
                                         }
-
                                         throw new Error(errorData.detail || 'Ошибка при отправке отклика');
                                     }
                                 })
@@ -100,17 +120,19 @@
                                     btn.disabled = false;
                                     btn.textContent = 'Откликнуться';
                                 });
-                        });
-                    </script>
+                            });
+                            </script>
 
-                    {% elif user.recruiter_profile %}
-                    <div class="alert alert-info text-center p-2 mb-2">
-                        <small>Вы работодатель. Отклики в ЛК.</small>
-                    </div>
-                    {% endif %}
+                        {% elif user.recruiter_profile %}
+                            <div class="alert alert-info text-center p-2 mb-2">
+                                <small>Вы работодатель. Отклики в ЛК.</small>
+                            </div>
+                        {% endif %}
                     {% else %}
-                    <a href="{% url 'accounts:login' %}?next={{ request.path }}"
-                        class="btn btn-outline-primary w-100 mb-2">Войдите, чтобы откликнуться</a>
+                        <a href="{% url 'accounts:login' %}?next={{ request.path }}" 
+                           class="btn btn-outline-primary w-100 mb-2">
+                           Войдите, чтобы откликнуться
+                        </a>
                     {% endif %}
 
                     <hr>
