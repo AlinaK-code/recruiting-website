@@ -21,7 +21,7 @@ urlpatterns = [
     path('vacancies/<int:pk>/edit/', views.VacancyUpdateView.as_view(), name='vacancy_edit'),
     path('vacancies/<int:pk>/delete/', views.VacancyDeleteView.as_view(), name='vacancy_delete'),
     
-    # Компании
+    # Компании\
     path('companies/', views.CompanyListView.as_view(), name='company_list'),
     
     # API эндпоиснты

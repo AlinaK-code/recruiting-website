@@ -2,7 +2,7 @@ from django.test import TestCase, Client
 from django.contrib.auth.models import User
 from rest_framework.test import APIClient
 from rest_framework import status
-from .models import Vacancy, Company, Skill, Application
+from .models import Vacancy, Company, Skill, Application, RecruiterProfile, CandidateProfile
 
 # чтобы заупустить тесты: (флаг -v 2 дает подробный вывод )
 # docker-compose exec web python manage.py test main.tests -v 2
@@ -37,9 +37,14 @@ class VacancyAPITest(TestCase):
         self.company = Company.objects.create(name="API Test Corp", city="SPb")
         self.skill = Skill.objects.create(name="Django")
         
-        # пользователь-владелец
+        # пользователь-владелец (работодатель)
         self.owner = User.objects.create_user(
             username='owner', password='ownerpass'
+        )
+        RecruiterProfile.objects.create(
+            user=self.owner,
+            company=self.company,
+            contact_person='Owner Recruiter',
         )
         # другой пользователь
         self.other = User.objects.create_user(
@@ -87,6 +92,19 @@ class VacancyAPITest(TestCase):
             "description": "Desc",
             "salary_min": 60000,
             "salary_max": 90000,
+            "company": self.company.id
+        }
+        response = self.client.post('/api/vacancies/', data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_create_vacancy_forbidden_without_recruiter_role(self):
+        """Тест: пользователь без роли работодателя не может создать вакансию"""
+        self.client.force_authenticate(user=self.other)
+        data = {
+            "title": "Unauthorized Job",
+            "description": "Desc",
+            "salary_min": 40000,
+            "salary_max": 70000,
             "company": self.company.id
         }
         response = self.client.post('/api/vacancies/', data, format='json')
@@ -144,6 +162,11 @@ class VacancyAPITest(TestCase):
         """Тест 10: Проверка работы аннотаций (к-во откликов)"""
         # создаю отклик на существующую вакансию
         applicant = User.objects.create_user(username='applicant', password='pass')
+        CandidateProfile.objects.create(
+            user=applicant,
+            full_name='Applicant User',
+            contact_email='applicant@test.com',
+        )
         Application.objects.create(
             vacancy=self.vacancy,
             candidate=applicant,

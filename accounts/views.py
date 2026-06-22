@@ -8,8 +8,9 @@ from django.urls import reverse_lazy
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 
+
 def register_view(request):
-    """Регистрация нового пользователя"""
+    """Регистрация нового пользователя с назначением роли."""
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
@@ -20,28 +21,41 @@ def register_view(request):
         form = CustomUserCreationForm()
     return render(request, 'accounts/register.html', {'form': form})
 
+
 @login_required
 def profile_view(request):
-    """Главная страница личного кабинета"""
+    """Главная страница личного кабинета."""
     user = request.user
-    
+
     resume = None
     try:
         resume = user.resume
     except Resume.DoesNotExist:
         pass
-        
-    # показ последние 5 откликов
+
     my_applications = Application.objects.filter(
         candidate=user
-    ).select_related('vacancy').order_by('-applied_at')[:5]
-    
+    ).select_related('vacancy', 'vacancy__company').order_by('-applied_at')[:5]
+
+    recruiter_applications = None
+    my_vacancies = None
+    if hasattr(user, 'recruiter_profile') and user.recruiter_profile:
+        recruiter_applications = Application.objects.filter(
+            vacancy__created_by=user
+        ).select_related('vacancy', 'candidate').order_by('-applied_at')[:5]
+        my_vacancies = user.vacancy_set.select_related('company').order_by('-created_at')[:5]
+
     context = {
         'user': user,
         'resume': resume,
         'my_applications': my_applications,
+        'recruiter_applications': recruiter_applications,
+        'my_vacancies': my_vacancies,
+        'is_recruiter': hasattr(user, 'recruiter_profile') and user.recruiter_profile,
+        'is_candidate': hasattr(user, 'candidate_profile') and user.candidate_profile,
     }
     return render(request, 'accounts/profile.html', context)
+
 
 @login_required
 def edit_profile_view(request):
@@ -53,17 +67,17 @@ def edit_profile_view(request):
             return redirect('accounts:profile')
     else:
         form = UserProfileForm(instance=request.user)
-        
+
     return render(request, 'accounts/edit_profile.html', {'form': form})
 
 
 class CustomLoginView(auth_views.LoginView):
     template_name = 'accounts/login.html'
     redirect_authenticated_user = True
-    
+
     def get_success_url(self):
         return reverse_lazy('accounts:profile')
-        
+
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
         form.helper = FormHelper()

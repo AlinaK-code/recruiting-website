@@ -1,9 +1,10 @@
-from django.views.generic import (
-    ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
-)
+# main/views.py
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Q
 from .models import Vacancy, Company
+from .forms import VacancyForm 
 
 class HomeView(TemplateView):
     template_name = 'main/home.html'
@@ -15,43 +16,46 @@ class VacancyListView(ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        return Vacancy.objects.filter(status='published')
+        return Vacancy.objects.filter(status='published').select_related('company', 'created_by')
 
 class VacancyDetailView(DetailView):
     model = Vacancy
     template_name = 'main/vacancy_detail.html'
     context_object_name = 'vacancy'
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        vacancy = self.object
-        applications = vacancy.applications.all()
-        interviews = []
-        for app in applications:
-            if hasattr(app, 'interview'):
-                interviews.append(app.interview)
-        context['applications'] = applications
-        context['interviews'] = interviews
-        return context
-    
+    def get_queryset(self):
+        qs = Vacancy.objects.select_related('company', 'created_by').prefetch_related('skills')
+        user = self.request.user
+        if user.is_authenticated and user.is_staff:
+            return qs
+        if user.is_authenticated:
+            return qs.filter(Q(status='published') | Q(created_by=user))
+        return qs.filter(status='published')
 
 class VacancyCreateView(LoginRequiredMixin, CreateView):
     model = Vacancy
-    fields = ['title', 'description', 'salary_min', 'salary_max', 'company', 'skills']
+    form_class = VacancyForm
     template_name = 'main/vacancy_form.html'
-    success_url = reverse_lazy('main:vacancy_list ')
-    
+    success_url = reverse_lazy('main:vacancy_list')
 
     def form_valid(self, form):
         form.instance.created_by = self.request.user
         form.instance.status = 'published'
         return super().form_valid(form)
+    def form_invalid(self, form):
+        print("="*50)
+        print("ОШИБКИ ФОРМЫ:", form.errors)
+        print("="*50)
+        return super().form_invalid(form)
 
+# ВОССТАНОВЛЕННЫЕ КЛАССЫ:
 class VacancyUpdateView(LoginRequiredMixin, UpdateView):
     model = Vacancy
-    fields = ['title', 'description', 'salary_min', 'salary_max', 'company', 'skills']
+    form_class = VacancyForm
     template_name = 'main/vacancy_form.html'
-    success_url = reverse_lazy('main:vacancy_list')
+    
+    def get_success_url(self):
+        return reverse_lazy('main:vacancy_detail', kwargs={'pk': self.object.pk})
 
 class VacancyDeleteView(LoginRequiredMixin, DeleteView):
     model = Vacancy

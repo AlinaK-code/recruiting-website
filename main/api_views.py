@@ -1,9 +1,15 @@
 from rest_framework import viewsets, status
+from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
-from .permissions import IsResumeOwnerOrAdmin, IsOwnerOrAdmin, IsReviewOwnerOrAdmin
+from .permissions import (
+    IsResumeOwnerOrAdmin,
+    IsRecruiterOwnerOrAdmin,
+    IsReviewOwnerOrAdmin,
+    IsCandidateOrAdmin,
+)
 from django.db.models import Count, Avg, Q, QuerySet
 from .models import Vacancy, Application, Resume, Review
 from .serializers import VacancySerializer, ApplicationSerializer, ResumeSerializer, ReviewSerializer
@@ -25,7 +31,7 @@ class VacancyViewSet(viewsets.ModelViewSet):
     # 3)  фильтр для ранжирования, пример http://127.0.0.1:8000/api/vacancies/?ordering=salary_min
     ordering_fields = ['created_at', 'salary_min']
     # подключаю права доступа 
-    permission_classes = [IsOwnerOrAdmin] 
+    permission_classes = [IsRecruiterOwnerOrAdmin] 
 
     # 4) фильтр по текущему пользователю
     def get_queryset(self) -> QuerySet[Vacancy]:
@@ -159,28 +165,26 @@ class VacancyViewSet(viewsets.ModelViewSet):
             }
             for h in history
         ])
+    
 class ApplicationViewSet(viewsets.ModelViewSet):
     """
     ViewSet для управления откликами на вакансии
     """
+    permission_classes = [IsCandidateOrAdmin] 
     queryset = Application.objects.all()
     serializer_class = ApplicationSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['status', 'vacancy']
 
     def get_queryset(self):
-        """
-        Фильтрует отклики: рекрутер видит отклики на свои вакансии, 
-        соискатель - только свои отклики.
-        
-        Returns:
-            QuerySet[Application]: Отфильтрованный набор откликов
-        """
         user = self.request.user
-        # смотрю есть ли у пользователя статус рекрутer
-        if hasattr(user, 'recruiter_profile') and user.recruiter_profile.exists():
+        if hasattr(user, 'recruiter_profile') and user.recruiter_profile:
             return super().get_queryset().filter(vacancy__created_by=user)
         return super().get_queryset().filter(candidate=user)
+    
+    def perform_create(self, serializer):
+        """Назначает текущего пользователя кандидатом"""
+        serializer.save(candidate=self.request.user)
     
 class ResumeViewSet(viewsets.ModelViewSet):
     """
@@ -221,12 +225,21 @@ class ReviewViewSet(viewsets.ModelViewSet):
         return Review.objects.select_related('user', 'vacancy__company')
 
     def perform_create(self, serializer):
-        """Привязывает отзыв к пользователю и вакансии из данных запроса."""
-        vacancy_id = self.request.data.get('vacancy') 
+        """Привязывает отзыв к пользователю и проверяет, что вакансия опубликована."""
+        from rest_framework.exceptions import ValidationError
+
+        vacancy_id = self.request.data.get('vacancy')
         if not vacancy_id:
-            from rest_framework.exceptions import ValidationError
-            raise ValidationError("Необходимо указать ID вакансии")
-            
+            raise ValidationError('Необходимо указать ID вакансии')
+
+        try:
+            vacancy = Vacancy.objects.get(pk=vacancy_id)
+        except Vacancy.DoesNotExist:
+            raise ValidationError('Вакансия не найдена')
+
+        if vacancy.status != 'published':
+            raise ValidationError('Отзывы можно оставлять только на опубликованные вакансии')
+
         serializer.save(user=self.request.user, vacancy_id=vacancy_id)
     @action(detail=False, methods=['get'], url_path='my-reviews')
     def my_reviews(self, request):

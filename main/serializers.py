@@ -58,7 +58,7 @@ class VacancySerializer(serializers.ModelSerializer):
             qs = Vacancy.objects.filter(
                 title=title, 
                 company=company, 
-                status__in=['published', 'pending']
+                status__in=['published', 'draft']
             )
             if self.instance:
                 qs = qs.exclude(pk=self.instance.pk)
@@ -121,6 +121,7 @@ class VacancySerializer(serializers.ModelSerializer):
         return False
     
 class ApplicationSerializer(serializers.ModelSerializer):
+    candidate = serializers.PrimaryKeyRelatedField(read_only=True)
     candidate_email = serializers.CharField(source='candidate.email', read_only=True)
     vacancy_title = serializers.CharField(source='vacancy.title', read_only=True)
 
