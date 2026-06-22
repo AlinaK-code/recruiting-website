@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'accounts',
     'main',
     'silk', 
+    'django_celery_beat', 
 ]
 
 MIDDLEWARE = [
@@ -99,6 +100,14 @@ if IS_DOCKER:
     ADMIN_BASE_CLASS = 'import_export.admin.ImportExportModelAdmin'
 else:
     ADMIN_BASE_CLASS = 'django.contrib.admin.ModelAdmin'
+
+# для селери
+CELERY_BROKER_URL = 'redis://redis:6379/0'
+CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Europe/Moscow'
     
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -183,3 +192,4 @@ EMAIL_HOST_USER = ''
 EMAIL_HOST_PASSWORD = ''
 EMAIL_USE_TLS = False
 DEFAULT_FROM_EMAIL = 'noreply@recruiting-site.com'
+

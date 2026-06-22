@@ -14,6 +14,7 @@ services:
       - sentry-web
     environment:
       - DOCKER=True
+      - DJANGO_SETTINGS_MODULE=core.settings
 
   db:
     image: postgres:16
@@ -76,6 +77,41 @@ services:
       - "8025:8025" # Веб-интерфейс
       - "1025:1025" # SMTP порт
     restart: always
+
+  celery-worker:
+    build: .
+    command: celery -A core worker --loglevel=info
+    volumes:
+      - .:/app
+    env_file:           
+      - .env
+    depends_on:
+      - web
+      - redis
+    environment:
+      - DJANGO_SETTINGS_MODULE=core.settings
+      - IS_DOCKER=True 
+
+  celery-beat:
+    build: .
+    command: celery -A core beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    volumes:
+      - .:/app
+    env_file:           
+      - .env
+    depends_on:
+      - db      
+      - redis
+    environment:
+      - DJANGO_SETTINGS_MODULE=core.settings
+      - IS_DOCKER=True     
+      - POSTGRES_DB=interview_db  
+      - POSTGRES_USER=postgres        
+      - POSTGRES_PASSWORD=postgres   
+      - POSTGRES_HOST=db 
+    restart: on-failure:3   
+
 volumes:
   postgres_data:
   sentry-db-data:
+
