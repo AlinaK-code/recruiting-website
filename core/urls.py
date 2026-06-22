@@ -15,6 +15,7 @@ urlpatterns = [
     path('', include('main.urls')), # для обычных страниц
     path('', include('main.api_urls')), #для API
     path('silk/', include('silk.urls', namespace='silk')), # для силк
+    path('accounts/', include('allauth.urls')), # для авторизации через гугл
 ]
 
 if settings.DEBUG:
