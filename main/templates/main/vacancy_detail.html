@@ -6,8 +6,9 @@
 {% block content %}
 <div class="container py-4">
     <div class="row">
-        <!-- Левая колонка: Информация о вакансии -->
+        <!-- ЛЕВАЯ КОЛОНКА: Информация о вакансии и Отзывы -->
         <div class="col-md-8">
+            <!-- Карточка вакансии -->
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-white">
                     <h2 class="mb-0">{{ vacancy.title }}</h2>
@@ -40,47 +41,156 @@
                     {% endif %}
                 </div>
             </div>
-        </div>
 
-        <!-- Правая колонка: Действия и Контакты -->
+            <!-- БЛОК ОТЗЫВОВ -->
+            <hr class="my-5">
+            <h4 class="mb-4">Отзывы о вакансии</h4>
+
+            {% if user.is_authenticated %}
+            <div class="card bg-light border-0 mb-4">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3">Оставить отзыв</h6>
+                    <div class="mb-2">
+                        <label class="form-label small text-muted">Ваша оценка:</label>
+                        <select id="reviewRating" class="form-select form-select-sm w-auto d-inline-block">
+                            <option value="5">⭐⭐⭐⭐⭐ (5)</option>
+                            <option value="4">⭐⭐⭐⭐ (4)</option>
+                            <option value="3">⭐⭐⭐ (3)</option>
+                            <option value="2">⭐⭐ (2)</option>
+                            <option value="1">⭐ (1)</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <textarea id="reviewText" class="form-control form-control-sm" rows="2" placeholder="Поделитесь впечатлениями..."></textarea>
+                    </div>
+                    
+                    <!-- Данные вынесены в data-атрибуты для чистого JS -->
+                    <button id="submitReviewBtn" 
+                            class="btn btn-primary btn-sm mt-1"
+                            data-vacancy-id="{{ vacancy.pk }}"
+                            data-csrf-token="{{ csrf_token }}">
+                        Отправить отзыв
+                    </button>
+                    <small id="reviewMsg" class="d-block mt-2"></small>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-info py-2 mb-4">
+                <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="fw-bold">Войдите</a>, чтобы оставить отзыв.
+            </div>
+            {% endif %}
+
+            <!-- Список отзывов -->
+            <div id="reviewsList">
+                {% for review in vacancy.reviews.all %}
+                <div class="border-bottom pb-3 mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <strong class="text-dark">{{ review.user.get_full_name|default:review.user.username }}</strong>
+                        <small class="text-muted">{{ review.created_at|date:"d.m.Y H:i" }}</small>
+                    </div>
+                    <div class="text-warning small mb-2">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= review.rating %}⭐{% endif %}
+                        {% endfor %}
+                    </div>
+                    <p class="mb-0 text-secondary">{{ review.text }}</p>
+                    
+                    {% if user.is_staff or user == review.user %}
+                        <button class="btn btn-link btn-sm p-0 text-danger mt-2 delete-review-btn" data-id="{{ review.pk }}">Удалить</button>
+                    {% endif %}
+                </div>
+                {% empty %}
+                <p class="text-muted fst-italic">Пока нет отзывов. Будьте первым!</p>
+                {% endfor %}
+            </div>
+
+            <!-- Чистый JavaScript для отзывов (без тегов Django) -->
+            <script>
+            const reviewBtn = document.getElementById('submitReviewBtn');
+            if (reviewBtn) {
+                reviewBtn.addEventListener('click', function() {
+                    const rating = document.getElementById('reviewRating').value;
+                    const text = document.getElementById('reviewText').value.trim();
+                    const msg = document.getElementById('reviewMsg');
+                    
+                    const vacancyId = parseInt(this.dataset.vacancyId);
+                    const csrfToken = this.dataset.csrfToken;
+                    
+                    if (!text) {
+                        msg.className = 'text-danger d-block mt-2';
+                        msg.textContent = 'Пожалуйста, напишите текст отзыва!';
+                        return;
+                    }
+                    
+                    reviewBtn.disabled = true;
+                    reviewBtn.textContent = 'Отправка...';
+                    
+                    fetch('/api/reviews/', {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json', 
+                            'X-CSRFToken': csrfToken 
+                        },
+                        body: JSON.stringify({ 
+                            vacancy: vacancyId, 
+                            rating: parseInt(rating), 
+                            text: text 
+                        })
+                    })
+                    .then(async res => {
+                        if (res.ok || res.status === 201) {
+                            location.reload();
+                        } else {
+                            const data = await res.json();
+                            throw new Error(data.detail || JSON.stringify(data));
+                        }
+                    })
+                    .catch(err => {
+                        msg.className = 'text-danger d-block mt-2';
+                        msg.textContent = err.message;
+                        reviewBtn.disabled = false;
+                        reviewBtn.textContent = 'Отправить отзыв';
+                    });
+                });
+            }
+            </script>
+            
+        </div> <!-- Конец левой колонки col-md-8 -->
+
+        <!-- ПРАВАЯ КОЛОНКА: Действия и Контакты -->
         <div class="col-md-4">
             <div class="card shadow-sm sticky-top" style="top: 20px;">
                 <div class="card-body">
                     
-                    <!-- БЛОК КОНТАКТОВ РАБОТОДАТЕЛЯ -->
+                    <!-- Контакты работодателя -->
                     {% if vacancy.contact_email or vacancy.contact_phone %}
                     <div class="mb-4 p-3 bg-light rounded border">
                         <h6 class="fw-bold mb-3 text-primary">Контакты работодателя</h6>
-                        
                         {% if vacancy.contact_email %}
                         <div class="mb-2 d-flex align-items-center">
-                            <span class="me-2">️</span>
-                            <a href="mailto:{{ vacancy.contact_email }}" class="text-decoration-none text-dark fw-bold">
-                                {{ vacancy.contact_email }}
-                            </a>
+                            <a href="mailto:{{ vacancy.contact_email }}" class="text-decoration-none text-dark fw-bold">{{ vacancy.contact_email }}</a>
                         </div>
                         {% endif %}
-                        
                         {% if vacancy.contact_phone %}
                         <div class="d-flex align-items-center">
-                            <a href="tel:{{ vacancy.contact_phone }}" class="text-decoration-none text-dark fw-bold">
-                                {{ vacancy.contact_phone }}
-                            </a>
+                            <a href="tel:{{ vacancy.contact_phone }}" class="text-decoration-none text-dark fw-bold">{{ vacancy.contact_phone }}</a>
                         </div>
                         {% endif %}
                     </div>
                     {% endif %}
 
-                    <!-- ДЕЙСТВИЯ ПОЛЬЗОВАТЕЛЯ -->
+                    <!-- Кнопка отклика с data-атрибутами -->
                     {% if user.is_authenticated %}
                         {% if user.candidate_profile %}
-                            <button id="applyBtn" class="btn btn-primary w-100 mb-2" 
-                                    data-vacancy-id="{{ vacancy.pk }}"
+                            <button id="applyBtn" 
+                                    class="btn btn-primary w-100 mb-2" 
+                                    data-vacancy-id="{{ vacancy.pk }}" 
                                     data-csrf-token="{{ csrf_token }}">
                                 Откликнуться
                             </button>
                             <small id="applyMsg" class="text-muted d-block text-center mb-3"></small>
                             
+                            <!-- Чистый JavaScript для отклика (без тегов Django) -->
                             <script>
                             document.getElementById('applyBtn').addEventListener('click', function () {
                                 const btn = this;
@@ -93,10 +203,7 @@
 
                                 fetch('/api/applications/', {
                                     method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'X-CSRFToken': csrfToken
-                                    },
+                                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
                                     body: JSON.stringify({ vacancy: vacancyId })
                                 })
                                 .then(async response => {
@@ -129,9 +236,8 @@
                             </div>
                         {% endif %}
                     {% else %}
-                        <a href="{% url 'accounts:login' %}?next={{ request.path }}" 
-                           class="btn btn-outline-primary w-100 mb-2">
-                           Войдите, чтобы откликнуться
+                        <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="btn btn-outline-primary w-100 mb-2">
+                            Войдите, чтобы откликнуться
                         </a>
                     {% endif %}
 
@@ -139,7 +245,8 @@
                     <a href="{% url 'main:vacancy_list' %}" class="btn btn-outline-secondary w-100">← К списку</a>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
+        </div> <!-- Конец правой колонки col-md-4 -->
+        
+    </div> <!-- Конец row -->
+</div> <!-- Конец container -->
 {% endblock %}
