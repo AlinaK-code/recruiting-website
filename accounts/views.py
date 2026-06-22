@@ -7,7 +7,9 @@ from django.contrib.auth import views as auth_views
 from django.urls import reverse_lazy
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
-
+from django.contrib import messages
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 
 def register_view(request):
     """Регистрация нового пользователя с назначением роли."""
@@ -84,3 +86,21 @@ class CustomLoginView(auth_views.LoginView):
         form.helper.form_method = 'post'
         form.helper.add_input(Submit('submit', 'Войти', css_class='btn-success w-100'))
         return form
+
+def update_application_status(request, pk):
+    """Обработка кнопок Принять/Отклонить в ЛК рекрутера"""
+    if request.method == 'POST':
+        application = Application.objects.get(pk=pk)
+        
+        # Проверка безопасности: рекрутер может менять статус только своих вакансий
+        if application.vacancy.created_by != request.user and not request.user.is_staff:
+            messages.error(request, "У вас нет прав управлять этим откликом.")
+            return HttpResponseRedirect(reverse('accounts:profile'))
+            
+        new_status = request.POST.get('status')
+        if new_status in ['accepted', 'rejected']:
+            application.status = new_status
+            application.save()
+            messages.success(request, f"Статус отклика изменен на: {application.get_status_display()}")
+            
+    return HttpResponseRedirect(reverse('accounts:profile'))

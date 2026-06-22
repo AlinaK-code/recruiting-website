@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import CustomLoginView
+from .views import CustomLoginView, update_application_status
 from django.contrib.auth import views as auth_views
 
 app_name = 'accounts'
@@ -11,4 +11,5 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(next_page='/'), name='logout'),
     path('profile/', views.profile_view, name='profile'),
     path('edit/', views.edit_profile_view, name='edit_profile'),
+    path('applications/<int:pk>/update-status/', update_application_status, name='update_app_status'),
 ]
