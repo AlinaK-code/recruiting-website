@@ -174,3 +174,12 @@ sentry_sdk.init(
     dsn="http://0.0.0b2c3900fc3d4151b63b2acd46eb464b@sentry-web:9000/2",
     integrations=[DjangoIntegration()],
 )
+
+# для mailhog
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'mailhog'
+EMAIL_PORT = 1025
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
+EMAIL_USE_TLS = False
+DEFAULT_FROM_EMAIL = 'noreply@recruiting-site.com'

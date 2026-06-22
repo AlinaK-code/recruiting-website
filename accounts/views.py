@@ -12,6 +12,8 @@ from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.db.models import Count
+from django.core.mail import send_mail 
+from django.conf import settings  
 
 
 def register_view(request):
@@ -127,23 +129,77 @@ class CustomLoginView(auth_views.LoginView):
         return form
 
 
+# accounts/views.py
+
 def update_application_status(request, pk):
     """Обработка кнопок Принять/Отклонить в ЛК рекрутера"""
     if request.method == "POST":
         application = Application.objects.get(pk=pk)
 
-        # Проверка безопасности: рекрутер может менять статус только своих вакансий
+        # Проверка безопасности
         if application.vacancy.created_by != request.user and not request.user.is_staff:
             messages.error(request, "У вас нет прав управлять этим откликом.")
             return HttpResponseRedirect(reverse("accounts:profile"))
 
         new_status = request.POST.get("status")
+        
+        # Логируем входящие данные
+        print("="*50)
+        print(f"DEBUG: Получен статус: {new_status}")
+        print(f"DEBUG: Email кандидата: {application.candidate.email}")
+        print("="*50)
+
         if new_status in ["accepted", "rejected"]:
+            # 1. Меняем статус
             application.status = new_status
             application.save()
+            
+            # 2. Показываем уведомление на сайте
             messages.success(
                 request,
                 f"Статус отклика изменен на: {application.get_status_display()}",
             )
 
-    return HttpResponseRedirect(reverse("accounts:profile"))
+            # 3. Формируем текст письма (ЭТОГО БЛОКА НЕ ХВАТАЛО!)
+            subject = ""
+            message = ""
+            
+            if new_status == 'accepted':
+                subject = f"Ваш отклик на вакансию '{application.vacancy.title}' принят!"
+                message = (
+                    f"Здравствуйте, {application.candidate.get_full_name() or 'Кандидат'}!\n\n"
+                    f"Работодатель рассмотрел ваш отклик на вакансию '{application.vacancy.title}' "
+                    f"и принял положительное решение.\n\n"
+                    f"Свяжитесь с работодателем для уточнения деталей:\n"
+                    f"Email: {application.vacancy.contact_email}\n"
+                    f"Телефон: {application.vacancy.contact_phone}\n\n"
+                    f"С уважением,\nКоманда Recruiting Site"
+                )
+            elif new_status == 'rejected':
+                subject = f"Статус отклика на вакансию '{application.vacancy.title}' обновлен"
+                message = (
+                    f"Здравствуйте, {application.candidate.get_full_name() or 'Кандидат'}!\n\n"
+                    f"К сожалению, работодатель отклонил ваш отклик на вакансию '{application.vacancy.title}'.\n"
+                    f"Не расстраивайтесь и продолжайте искать подходящие вакансии на нашем сайте!\n\n"
+                    f"С уважением,\nКоманда Recruiting Site"
+                )
+            
+            # 4. Отправляем письмо
+            try:
+                print("DEBUG: Пытаюсь отправить письмо...")
+                send_mail(
+                    subject=subject,
+                    message=message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[application.candidate.email],
+                    fail_silently=False,
+                )
+                print("DEBUG: Письмо успешно отправлено!")
+            except Exception as e:
+                print(f"DEBUG: ОШИБКА ОТПРАВКИ: {e}")
+                import traceback
+                traceback.print_exc()
+        else:
+            print(f"DEBUG: Статус '{new_status}' некорректен. Письмо не отправлено.")
+                
+    return HttpResponseRedirect(reverse('accounts:profile'))
