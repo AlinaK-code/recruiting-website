@@ -7,7 +7,7 @@ from import_export.fields import Field
 # импортирую все модели
 from .models import (
     Skill, Company, CandidateProfile, RecruiterProfile,
-    Vacancy, Application, Interview, Feedback
+    Vacancy, Application, Interview, Feedback, Resume, Review
 )
 
 # таблица-справочник навыков
@@ -22,7 +22,7 @@ class SkillAdmin(admin.ModelAdmin):
 @admin.register(Company)
 class CompanyAdmin(admin.ModelAdmin):
     list_display = ['id','name', 'city', 'logo_preview', 'created_at'] # logo_preview - ф-ия возвр изображение
-    list_filter = ['id','city', 'created_at']
+    list_filter = ['city', 'created_at']
     search_fields = ['name', 'description']
     readonly_fields = ['created_at', 'updated_at']
     fields = ['name', 'description', 'logo', 'city', 'created_at', 'updated_at']
@@ -114,7 +114,7 @@ class VacancyResource(resources.ModelResource):
 class VacancyAdmin(ImportExportModelAdmin):
     resource_class = VacancyResource
     list_display = ['id','title', 'company_name', 'salary_range', 'status', 'created_by_email', 'created_at']
-    list_filter = ['id','status', 'company', 'created_at']
+    list_filter = ['status', 'company', 'created_at']
     search_fields = ['title', 'description']
     date_hierarchy = 'created_at'
     readonly_fields = ['created_at', 'updated_at']
@@ -145,7 +145,7 @@ class VacancyAdmin(ImportExportModelAdmin):
 @admin.register(Application)
 class ApplicationAdmin(admin.ModelAdmin):
     list_display = ['id','candidate_email', 'vacancy_title', 'status', 'applied_at']
-    list_filter = ['id','status', 'applied_at']
+    list_filter = ['status', 'applied_at']
     search_fields = ['candidate__email', 'vacancy__title']
     date_hierarchy = 'applied_at'
     readonly_fields = ['applied_at', 'reviewed_at']
@@ -164,7 +164,7 @@ class ApplicationAdmin(admin.ModelAdmin):
 @admin.register(Interview)
 class InterviewAdmin(admin.ModelAdmin):
     list_display = ['id','application_info', 'scheduled_at', 'format', 'status']
-    list_filter = ['id','format', 'status', 'scheduled_at']
+    list_filter = ['format', 'status', 'scheduled_at']
     date_hierarchy = 'scheduled_at'
     readonly_fields = ['created_at']
     raw_id_fields = ['application']
@@ -178,7 +178,7 @@ class InterviewAdmin(admin.ModelAdmin):
 @admin.register(Feedback)
 class FeedbackAdmin(admin.ModelAdmin):
     list_display = ['id','interview_info', 'rating', 'created_by_email', 'created_at']
-    list_filter = ['id','rating', 'created_at']
+    list_filter = ['rating', 'created_at']
     readonly_fields = ['created_at']
     raw_id_fields = ['interview', 'created_by']
 
@@ -190,3 +190,38 @@ class FeedbackAdmin(admin.ModelAdmin):
     @admin.display(description="Автор")
     def created_by_email(self, obj):
         return obj.created_by.email
+    
+
+@admin.register(Resume)
+class ResumeAdmin(admin.ModelAdmin):
+    list_display = ['id', 'user', 'title', 'salary_expected', 'experience_years', 'updated_at']
+    list_filter = ['experience_years', 'updated_at']
+    search_fields = ['title', 'user__username', 'user__email']
+    readonly_fields = ['created_at', 'updated_at']
+    filter_horizontal = ['skills']  # Удобный виджет для ManyToMany
+    raw_id_fields = ['user']        # Чтобы не грузить список всех пользователей при выборе
+
+
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+    list_display = ['id', 'user', 'vacancy_title', 'rating_stars', 'text_preview', 'created_at']
+    list_filter = ['rating', 'created_at']
+    search_fields = ['text', 'user__username', 'vacancy__title']
+    readonly_fields = ['created_at', 'updated_at']
+    raw_id_fields = ['user', 'vacancy']
+
+    @admin.display(description="Вакансия")
+    def vacancy_title(self, obj):
+        return obj.vacancy.title
+
+    @admin.display(description="Оценка")
+    def rating_stars(self, obj):
+        """Отображение к-ва звезд"""
+        return "⭐" * obj.rating
+
+    @admin.display(description="Текст отзыва")
+    def text_preview(self, obj):
+        """Показывает только начало текста, чтобы не растягивать таблицу."""
+        if len(obj.text) > 50:
+            return f"{obj.text[:50]}..."
+        return obj.text

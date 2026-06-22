@@ -1,0 +1,76 @@
+<!-- accounts/templates/accounts/profile.html -->
+{% extends "base.html" %} 
+
+{% block content %} <!-- Используем стандартный блок base.html -->
+<div class="container mt-4">
+    <div class="row">
+        <!-- Сайдбар личного кабинета (встроен прямо сюда для надежности) -->
+        <div class="col-md-3 mb-4">
+            <div class="card shadow-sm">
+                <div class="list-group list-group-flush">
+                    <a href="{% url 'accounts:profile' %}" class="list-group-item list-group-item-action active">
+                        Мой профиль
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action disabled text-muted">
+                        Моё резюме
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action disabled text-muted">
+                        Мои отклики
+                    </a>
+                    <a href="{% url 'accounts:edit_profile' %}" class="list-group-item list-group-item-action">
+                        Настройки
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Основной контент профиля -->
+        <div class="col-md-9">
+            <h2 class="mb-4">Добро пожаловать, {{ user.get_full_name|default:user.username }}!</h2>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light fw-bold"> Личные данные</div>
+                <div class="card-body">
+                    <p><strong>Email:</strong> {{ user.email }}</p>
+                    <p><strong>Имя:</strong> {{ user.first_name|default:"Не указано" }}</p>
+                    <p><strong>Фамилия:</strong> {{ user.last_name|default:"Не указано" }}</p>
+                    <a href="{% url 'accounts:edit_profile' %}" class="btn btn-outline-primary btn-sm">Редактировать</a>
+                </div>
+            </div>
+
+            {% if resume %}
+            <div class="card shadow-sm mb-4 border-success">
+                <div class="card-header bg-success text-white fw-bold">Резюме заполнено</div>
+                <div class="card-body">
+                    <h5>{{ resume.title }}</h5>
+                    <p class="mb-1">Опыт: {{ resume.experience_years }} лет</p>
+                    <p class="mb-0">Зарплата: {{ resume.salary_expected|default:"не указана" }} ₽</p>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-warning">У вас пока нет резюме.</div>
+            {% endif %}
+
+            <h4 class="mt-4 mb-3">Последние отклики</h4>
+            {% if my_applications %}
+            <table class="table table-hover shadow-sm">
+                <thead class="table-light">
+                    <tr><th>Вакансия</th><th>Статус</th><th>Дата</th></tr>
+                </thead>
+                <tbody>
+                    {% for app in my_applications %}
+                    <tr>
+                        <td>{{ app.vacancy.title }}</td>
+                        <td><span class="badge bg-secondary">{{ app.get_status_display }}</span></td>
+                        <td>{{ app.applied_at|date:"d.m.Y" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="text-muted fst-italic">Вы пока не откликались на вакансии.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

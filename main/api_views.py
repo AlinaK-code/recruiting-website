@@ -8,6 +8,8 @@ from django.db.models import Count, Avg, Q, QuerySet
 from .models import Vacancy, Application, Resume, Review
 from .serializers import VacancySerializer, ApplicationSerializer, ResumeSerializer, ReviewSerializer
 
+# апи по пути:
+# http://127.0.0.1:8000/api/vacancies/
 
 class VacancyViewSet(viewsets.ModelViewSet):
     """
@@ -124,13 +126,6 @@ class VacancyViewSet(viewsets.ModelViewSet):
     def complex_search(self, request)-> Response:
         """
         возвращает все опубликованные вакансии 
-        или созданные текущим пользователем
-        
-        Args:
-            request: HTTP запрос
-            
-        Returns:
-            Response: Список вакансий
         """
         user = request.user
         queryset = Vacancy.objects.filter(
@@ -142,13 +137,6 @@ class VacancyViewSet(viewsets.ModelViewSet):
     def close(self, request, pk=None)-> Response:
         """
         закрывает вакансию
-        
-        Args:
-            request: HTTP запрос
-            pk: Первичный ключ вакансии
-            
-        Returns:
-            Response: Подтверждение изменения статуса
         """
         vacancy = self.get_object()
         vacancy.status = 'closed'
@@ -160,13 +148,6 @@ class VacancyViewSet(viewsets.ModelViewSet):
         """
         Возвращает историю изменений конкретной вакансии 
         через django-simple-history
-        
-        Args:
-            request: HTTP запрос
-            pk: Первичный ключ вакансии
-            
-        Returns:
-            Response: Список записей истории изменений
         """
         vacancy = self.get_object()
         history = vacancy.history.all()

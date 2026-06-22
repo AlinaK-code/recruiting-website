@@ -32,6 +32,9 @@ INSTALLED_APPS = [
     'django_filters',
     'import_export',
     'simple_history',
+    'crispy_forms',
+    'crispy_bootstrap5',
+    'accounts',
     'main',
     'silk', 
 ]
@@ -52,7 +55,7 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -162,6 +165,10 @@ SIMPLE_HISTORY_TRACKING_EXCLUDE = ['User']
 SILKY_AUTHENTICATION = True 
 SILKY_AUTHORISATION = True   
 SILKY_META = True 
+
+# Настройки для криспи форм
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 sentry_sdk.init(
     dsn="http://0.0.0b2c3900fc3d4151b63b2acd46eb464b@sentry-web:9000/2",
